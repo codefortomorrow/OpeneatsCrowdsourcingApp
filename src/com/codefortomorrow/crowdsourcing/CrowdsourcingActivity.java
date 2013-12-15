@@ -1,8 +1,10 @@
 package com.codefortomorrow.crowdsourcing;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import com.example.cameratest.R;
@@ -109,56 +111,44 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 	PictureCallback jpeg = new PictureCallback() {
 
 		@Override
-		public void onPictureTaken(byte[] data, Camera camera) {
-			switch(photoNum) {
+		public void onPictureTaken(byte[] data, Camera camera) 
+		{
+//			Bitmap bmp1Raw = BitmapFactory.decodeByteArray(data,0, data.length);
+			InputStream inputStream = new ByteArrayInputStream(data);
+			//Use BitmapFactory options to avoid the Out of Memory issue
+			Bitmap bmpRaw = BitmapFactory.decodeStream(inputStream, null, getBitmapOptions(2));
+			Bitmap bmp = resizeBitmapToSquare(bmpRaw);
+			
+			FileOutputStream fop;
+			try {
+				fop=new FileOutputStream("/sdcard/d"+ photoNum +".jpg");
+				bmp.compress(Bitmap.CompressFormat.JPEG, 50, fop);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			switch(photoNum) 
+			{
 			case 0:
-				Bitmap bmp1Raw = BitmapFactory.decodeByteArray(data,0, data.length);
-				Bitmap bmp1 = resizeBitmapToSquare(bmp1Raw);
-				ivShoot1.setImageBitmap(bmp1);
-				FileOutputStream fop1;
-				try {
-					fop1=new FileOutputStream("/sdcard/d1.jpg");
-					bmp1.compress(Bitmap.CompressFormat.JPEG, 50, fop1);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
+				ivShoot1.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
 				ivTitle.setImageResource(R.drawable.title_step2);
-
-				
 				photoNum++;
 				break;
 			case 1:
-				Bitmap bmp2Raw = BitmapFactory.decodeByteArray(data,0, data.length);
-				Bitmap bmp2 = resizeBitmapToSquare(bmp2Raw);
-				ivShoot2.setImageBitmap(bmp2);
-				FileOutputStream fop2;
-				try {
-					fop2=new FileOutputStream("/sdcard/d2.jpg");
-					bmp2.compress(Bitmap.CompressFormat.JPEG, 50, fop2);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
+				ivShoot2.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
 				ivTitle.setImageResource(R.drawable.title_step3);
 				photoNum++;
 				break;
 			case 2:
-				Bitmap bmp3Raw = BitmapFactory.decodeByteArray(data,0, data.length);
-				Bitmap bmp3 = resizeBitmapToSquare(bmp3Raw);
-				ivShoot3.setImageBitmap(bmp3);
-				FileOutputStream fop3;
-				try {
-					fop3=new FileOutputStream("/sdcard/d2.jpg");
-					bmp3.compress(Bitmap.CompressFormat.JPEG, 50, fop3);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
+				ivShoot3.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF2DFF49"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF2DFF49"));
 				ivTitle.setImageResource(R.drawable.title_finish);
@@ -167,6 +157,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 			default:
 				break;
 			}
+			
+//			bmp.recycle();
+//			System.gc();
 
 			//need start preview, otherwise surfaceView will have a screen lock
 			camera.stopPreview();
@@ -189,6 +182,24 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 			startHeight = (bitmap.getHeight()-bitmap.getWidth())/2;
 		}
 		return Bitmap.createBitmap(bitmap, startWidth, startHeight, edgeLength, edgeLength);
+	}
+	
+	private BitmapFactory.Options getBitmapOptions(int scale)
+	{
+		BitmapFactory.Options options = new BitmapFactory.Options();
+	    options.inPurgeable = true;
+	    options.inInputShareable = true;
+	    options.inSampleSize = scale;
+	    try
+	    {
+	    	BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options,true);
+	    }
+	    catch(Exception e)
+	    {
+	    	Log.d("TAG", e.toString());
+	    }
+	    
+	    return options;
 	}
 
 	@Override
