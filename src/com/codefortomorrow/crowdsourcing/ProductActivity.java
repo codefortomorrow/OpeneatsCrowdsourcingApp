@@ -73,6 +73,33 @@ public class ProductActivity extends Activity
 		String productID = intent.getStringExtra("product_ID");
 		productView.setText(productID);
 		
+<<<<<<< HEAD
+=======
+		//獲取 網路狀態
+//		ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//		NetworkInfo networkInfo = connect.getActiveNetworkInfo();
+//		
+//		if(networkInfo != null)
+//		{
+//			if(networkInfo.isAvailable())
+//			{
+//				cameraButton.setClickable(true);
+//				cameraButton.setText(R.string.button_product_start_camera);
+//			}
+//			else
+//			{
+//				cameraButton.setClickable(false);
+//				cameraButton.setText(R.string.button_product_no_network);
+//			}
+//		}
+//		else
+//		{
+//			cameraButton.setClickable(false);
+//			cameraButton.setText(R.string.button_product_no_network);
+//		}
+		//監聽 網路狀態
+//		registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+>>>>>>> ae415114c788d3eb617225826e9769f736626429
 		
 	}
 	
@@ -83,7 +110,10 @@ public class ProductActivity extends Activity
 		public void onReceive(Context context, Intent intent)
 		{
 			// TODO Auto-generated method stub
+<<<<<<< HEAD
 			// Detect the network
+=======
+>>>>>>> ae415114c788d3eb617225826e9769f736626429
 			ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 			NetworkInfo networkInfo = connect.getActiveNetworkInfo();
 			if(networkInfo != null)
