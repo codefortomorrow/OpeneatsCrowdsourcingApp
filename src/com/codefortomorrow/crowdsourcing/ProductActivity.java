@@ -2,9 +2,14 @@ package com.codefortomorrow.crowdsourcing;
 
 import com.example.cameratest.R;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -14,6 +19,30 @@ public class ProductActivity extends Activity
 {
 	TextView productView;
 	Button cameraButton;
+
+	@Override
+	protected void onDestroy()
+	{
+		// TODO Auto-generated method stub
+		
+		super.onDestroy();
+	}
+
+	@Override
+	protected void onPause()
+	{
+		// TODO Auto-generated method stub
+		super.onPause();
+		this.unregisterReceiver(broadcast);
+	}
+
+	@Override
+	protected void onResume()
+	{
+		// TODO Auto-generated method stub
+		super.onResume();
+		this.registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -39,10 +68,67 @@ public class ProductActivity extends Activity
 	
 	private void loadData()
 	{
+		//獲取 Scan Barcode
 		Intent intent = getIntent();
 		String productID = intent.getStringExtra("product_ID");
 		productView.setText(productID);
+		
+		//獲取 網路狀態
+//		ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//		NetworkInfo networkInfo = connect.getActiveNetworkInfo();
+//		
+//		if(networkInfo != null)
+//		{
+//			if(networkInfo.isAvailable())
+//			{
+//				cameraButton.setClickable(true);
+//				cameraButton.setText(R.string.button_product_start_camera);
+//			}
+//			else
+//			{
+//				cameraButton.setClickable(false);
+//				cameraButton.setText(R.string.button_product_no_network);
+//			}
+//		}
+//		else
+//		{
+//			cameraButton.setClickable(false);
+//			cameraButton.setText(R.string.button_product_no_network);
+//		}
+		//監聽 網路狀態
+//		registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+		
 	}
+	
+	private BroadcastReceiver broadcast =  new BroadcastReceiver() 
+	{
+
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			// TODO Auto-generated method stub
+			ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo networkInfo = connect.getActiveNetworkInfo();
+			if(networkInfo != null)
+			{
+				if(networkInfo.isAvailable())
+				{
+					cameraButton.setClickable(true);
+					cameraButton.setText(R.string.button_product_start_camera);
+				}
+				else
+				{
+					cameraButton.setClickable(false);
+					cameraButton.setText(R.string.button_product_no_network);
+				}
+			}
+			else
+			{
+				cameraButton.setClickable(false);
+				cameraButton.setText(R.string.button_product_no_network);
+			}
+		}
+	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -65,5 +151,7 @@ public class ProductActivity extends Activity
 		}
 		
 	};
+	
+	
 
 }
