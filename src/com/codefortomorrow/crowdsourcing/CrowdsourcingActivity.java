@@ -1,13 +1,12 @@
 package com.codefortomorrow.crowdsourcing;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
-import com.example.cameratest.R;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -28,6 +27,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.example.cameratest.R;
+
 public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Callback {
 	
 	int photoNum = 0;
@@ -38,7 +39,10 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 	ImageView ivTitle;
 	LinearLayout mLinearLayout;
 	Camera mCamera;
-
+	//ByteArrayOutputStreams for uploading to server
+	ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+	ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+	ByteArrayOutputStream out3 = new ByteArrayOutputStream();
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
@@ -120,9 +124,10 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 			Bitmap bmp = resizeBitmapToSquare(bmpRaw);
 			
 			FileOutputStream fop;
+			
 			try {
 				fop=new FileOutputStream("/sdcard/d"+ photoNum +".jpg");
-				bmp.compress(Bitmap.CompressFormat.JPEG, 50, fop);
+				bmp.compress(Bitmap.CompressFormat.JPEG, 30, fop);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -131,7 +136,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 			switch(photoNum) 
 			{
 			case 0:
-				
+				bmp.compress(Bitmap.CompressFormat.JPEG, 30, out1);
 				ivShoot1.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
@@ -139,7 +144,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 				photoNum++;
 				break;
 			case 1:
-				
+				bmp.compress(Bitmap.CompressFormat.JPEG, 30, out2);
 				ivShoot2.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
@@ -147,7 +152,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 				photoNum++;
 				break;
 			case 2:
-				
+				bmp.compress(Bitmap.CompressFormat.JPEG, 30, out3);
 				ivShoot3.setImageBitmap(bmp);
 				ivTitle.setBackgroundColor(Color.parseColor("#FF2DFF49"));
 				mLinearLayout.setBackgroundColor(Color.parseColor("#FF2DFF49"));
