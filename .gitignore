@@ -15,3 +15,9 @@ gen/
 # Eclipse project files
 # .classpath
 # .project
+
+
+# IntelliJ IDEA project files
+.idea/
+*.eml
+*.iml
