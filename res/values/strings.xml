@@ -16,6 +16,7 @@
     <string name="button_dial">Dial number</string>
     <string name="button_done">Done</string>
     <string name="button_email">Send email</string>
+    <string name="button_finish_new_product">New Product</string>
     <string name="button_get_directions">Get directions</string>
     <string name="button_google_shopper">Shopper</string>
     <string name="button_mms">Send MMS</string>
@@ -64,6 +65,8 @@
     <string name="msg_default_time">Time</string>
     <string name="msg_default_type">Type</string>
     <string name="msg_encode_contents_failed">Could not encode a barcode from the data provided.</string>
+    <string name="msg_finish_updating">Updating pictures</string>
+    <string name="msg_finish_complite_update">Finish updating</string>
     <string name="msg_google_books">Google Books</string>
     <string name="msg_google_product">Google Product Search</string>
     <string name="msg_google_shopper_missing">Google Shopper is not installed</string>
