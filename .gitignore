@@ -13,7 +13,7 @@ bin/
 gen/
 
 # Eclipse project files
-# .classpath
+.classpath
 # .project
 
 
