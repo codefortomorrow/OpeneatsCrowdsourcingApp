@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
 import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
 import ch.boye.httpclientandroidlib.entity.mime.content.ByteArrayBody;
 import ch.boye.httpclientandroidlib.entity.mime.content.FileBody;
@@ -160,7 +162,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         @Override
         public void onErrorResponse(VolleyError volleyError)
         {
-            Log.d(TAG, "update Error");
+            Log.d(TAG, "update Error: " + volleyError.toString());
             progressDialog.dismiss();
         }
     };
@@ -336,17 +338,23 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         Log.d(TAG, "Start updating");
         StringRequest picReq = new StringRequest(Request.Method.POST, "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload", updatePicListener, updatePicErrorListener)
         {
-            MultipartEntity entity = new MultipartEntity();
+            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
 
             @Override
             public byte[] getBody() throws AuthFailureError
             {
                 ByteArrayOutputStream transit = new ByteArrayOutputStream();
+                entity.addPart("file", new ByteArrayBody("12312".getBytes(), "pic0.jpg"));
+                entity.addPart("file", new ByteArrayBody("12312".getBytes(), "pic1.jpg"));
+                entity.addPart("file", new ByteArrayBody("123123123".getBytes(), "pic2.jpg"));
 
                 try
                 {
+                    entity.addPart("app_user_id", new StringBody("1111"));
+                    entity.addPart("barcode", new StringBody("12321"));
+
                     entity.writeTo(transit);
-                    Log.d(TAG, String.valueOf(entity.getContentLength()));
+                    Log.d(TAG, String.valueOf(transit.size()));
                 }
                 catch (Exception e)
                 {
@@ -359,19 +367,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             @Override
             public String getBodyContentType()
             {
-                entity.addPart("file", new ByteArrayBody(out1.toByteArray(), "pic0"));
-                entity.addPart("file", new ByteArrayBody(out2.toByteArray(), "pic1"));
-                entity.addPart("file", new ByteArrayBody(out3.toByteArray(), "pic2"));
-
-                try
-                {
-                    entity.addPart("app_user_id", new StringBody("1111"));
-                    entity.addPart("barcode", new StringBody("12321"));
-                }
-                catch (Exception e)
-                {
-                    Log.d(TAG, e.toString());
-                }
                 Log.d(TAG, entity.getContentType().getValue());
                 return entity.getContentType().getValue();
 //                return super.getBodyContentType();
@@ -381,7 +376,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(picReq);
     }
-
 
 
 }
