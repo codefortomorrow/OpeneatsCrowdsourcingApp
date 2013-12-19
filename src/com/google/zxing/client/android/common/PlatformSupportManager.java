@@ -12,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file is modified by Lee <jessy1092@gmail.com> on 2013.
  */
 
 package com.google.zxing.client.android.common;
@@ -67,26 +69,26 @@ public abstract class PlatformSupportManager<T> {
   }
 
   public final T build() {
-    for (Integer minVersion : implementations.keySet()) {
-      if (Build.VERSION.SDK_INT >= minVersion) {
-        String className = implementations.get(minVersion);
-        try {
-          Class<? extends T> clazz = Class.forName(className).asSubclass(managedInterface);
-          Log.i(TAG, "Using implementation " + clazz + " of " + managedInterface + " for SDK " + minVersion);
-          return clazz.getConstructor().newInstance();
-        } catch (ClassNotFoundException cnfe) {
-          Log.w(TAG, cnfe);
-        } catch (IllegalAccessException iae) {
-          Log.w(TAG, iae);
-        } catch (InstantiationException ie) {
-          Log.w(TAG, ie);
-        } catch (NoSuchMethodException nsme) {
-          Log.w(TAG, nsme);
-        } catch (InvocationTargetException ite) {
-          Log.w(TAG, ite);
-        }
-      }
-    }
+//    for (Integer minVersion : implementations.keySet()) {
+//      if (Build.VERSION.SDK_INT >= minVersion) {
+//        String className = implementations.get(minVersion);
+//        try {
+//          Class<? extends T> clazz = Class.forName(className).asSubclass(managedInterface);
+//          Log.i(TAG, "Using implementation " + clazz + " of " + managedInterface + " for SDK " + minVersion);
+//          return clazz.getConstructor().newInstance();
+//        } catch (ClassNotFoundException cnfe) {
+//          Log.w(TAG, cnfe);
+//        } catch (IllegalAccessException iae) {
+//          Log.w(TAG, iae);
+//        } catch (InstantiationException ie) {
+//          Log.w(TAG, ie);
+//        } catch (NoSuchMethodException nsme) {
+//          Log.w(TAG, nsme);
+//        } catch (InvocationTargetException ite) {
+//          Log.w(TAG, ite);
+//        }
+//      }
+//    }
     Log.i(TAG, "Using default implementation " + defaultImplementation.getClass() + " of " + managedInterface);
     return defaultImplementation;
   }
