@@ -2,20 +2,19 @@ package com.codefortomorrow.crowdsourcing;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.*;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.nfc.Tag;
 import android.os.Bundle;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.UUID;
 
 public class ProductActivity extends Activity
 {
@@ -23,8 +22,11 @@ public class ProductActivity extends Activity
     private Button cameraButton;
 
     private String productID;
+    private String contentUUID;
 
-    private  String TAG = "Lee";
+    private static final String TAG = "Lee";
+    private static final String PREF_NAME = "OPENEATS";
+    private static final String PREF_KEY = "UUID";
 
 	@Override
 	protected void onDestroy()
@@ -86,6 +88,14 @@ public class ProductActivity extends Activity
             Log.d(TAG, account.name);
         }
 
+        SharedPreferences sp = getSharedPreferences(PREF_NAME, Context.MODE_WORLD_WRITEABLE);
+        contentUUID = sp.getString(PREF_KEY, "");
+        if(contentUUID.equals(""))
+        {
+            contentUUID = UUID.randomUUID().toString();
+            sp.edit().putString(PREF_KEY, contentUUID).commit();
+        }
+        Log.d(TAG, "uuid: " + contentUUID);
 	}
 	
 	private BroadcastReceiver broadcast =  new BroadcastReceiver() 
@@ -137,7 +147,7 @@ public class ProductActivity extends Activity
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 			intent.setClassName(ProductActivity.this, CrowdsourcingActivity.class.getName());
             intent.putExtra("product_ID",productID);
-
+            intent.putExtra("UUID", contentUUID);
             ProductActivity.this.startActivity(intent);
 		}
 		

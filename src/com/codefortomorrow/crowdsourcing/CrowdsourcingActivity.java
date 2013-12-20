@@ -43,6 +43,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 	private int photoNum = 0;
     private int compressNum = 0;
     private String productID;
+    private String contentUUID;
 
 	private SurfaceHolder surfaceHolder;
     private SurfaceView svCameraPreview;
@@ -107,6 +108,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     {
         Intent intent = getIntent();
         productID = intent.getStringExtra("product_ID");
+        contentUUID = intent.getStringExtra("UUID");
     }
 
     private OnClickListener myOnClickListener = new OnClickListener()
@@ -383,7 +385,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         }
         catch (Exception e)
         {
-            Log.d("TAG", e.toString());
+            Log.d(TAG, e.toString());
         }
 
         return options;
@@ -471,7 +473,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
                 try
                 {
-                    entity.addPart("app_user_id", new StringBody("1111"));
+                    entity.addPart("app_user_id", new StringBody(contentUUID));
                     entity.addPart("barcode", new StringBody(productID));
                     entity.addPart("pic0", new ByteArrayBody(out1.toByteArray(), "file", "pic0.jpg"));
                     entity.addPart("pic1", new ByteArrayBody(out2.toByteArray(), "file", "pic1.jpg"));
