@@ -126,9 +126,12 @@
         </activity>
         <activity
             android:name="com.codefortomorrow.crowdsourcing.ProductActivity"
-            android:label="@string/title_activity_product" >
+            android:label="@string/title_activity_product"
+            android:screenOrientation="portrait" >
         </activity>
-        <activity android:name="com.codefortomorrow.crowdsourcing.FinishActivity"/>
+        <activity android:name="com.codefortomorrow.crowdsourcing.FinishActivity"
+                  android:screenOrientation="portrait" >
+        </activity>
     </application>
 
 </manifest>
