@@ -36,12 +36,13 @@ import ch.boye.httpclientandroidlib.entity.mime.content.ByteArrayBody;
 import ch.boye.httpclientandroidlib.entity.mime.content.StringBody;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
-import com.example.cameratest.R;
 
 
 public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Callback {
 	
 	private int photoNum = 0;
+    private String productID;
+
 	private SurfaceHolder surfaceHolder;
     private SurfaceView svCameraPreview;
     private Button btnShoot, btnBack;
@@ -86,6 +87,14 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceHolder.addCallback(this);
 
+        loadData();
+
+    }
+
+    private void loadData()
+    {
+        Intent intent = getIntent();
+        productID = intent.getStringExtra("product_ID");
     }
 
     private OnClickListener myOnClickListener = new OnClickListener()
@@ -371,7 +380,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 try
                 {
                     entity.addPart("app_user_id", new StringBody("1111"));
-                    entity.addPart("barcode", new StringBody("12321"));
+                    entity.addPart("barcode", new StringBody(productID));
                     entity.addPart("pic0", new ByteArrayBody(out1.toByteArray(), "file", "pic0.jpg"));
                     entity.addPart("pic1", new ByteArrayBody(out2.toByteArray(), "file", "pic1.jpg"));
                     entity.addPart("pic2", new ByteArrayBody(out3.toByteArray(), "file", "pic2.jpg"));

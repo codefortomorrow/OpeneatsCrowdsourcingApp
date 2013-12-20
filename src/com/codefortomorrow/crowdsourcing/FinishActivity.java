@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import com.example.cameratest.R;
 import com.google.zxing.client.android.CaptureActivity;
+
 
 /**
  * Created by Lee on 2013/12/17.

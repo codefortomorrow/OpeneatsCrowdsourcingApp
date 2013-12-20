@@ -21,7 +21,7 @@ import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.widget.Toast;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.client.android.CaptureActivity;
 import com.google.zxing.client.android.common.executor.AsyncTaskExecInterface;
 import com.google.zxing.client.android.common.executor.AsyncTaskExecManager;

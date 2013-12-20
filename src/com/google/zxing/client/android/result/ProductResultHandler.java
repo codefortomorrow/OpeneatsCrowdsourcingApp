@@ -17,12 +17,11 @@
 package com.google.zxing.client.android.result;
 
 import com.codefortomorrow.crowdsourcing.ProductActivity;
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.Result;
 import com.google.zxing.client.result.ExpandedProductParsedResult;
 import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.ProductParsedResult;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
@@ -33,49 +32,60 @@ import android.view.View;
  * @author dswitkin@google.com (Daniel Switkin)
  */
 public final class ProductResultHandler extends ResultHandler {
-  private static final int[] buttons = {
-      R.string.button_product_search,
-      R.string.button_web_search,
-      R.string.button_custom_product_search
-  };
+    private static final int[] buttons = {
+            R.string.button_product_search,
+            R.string.button_web_search,
+            R.string.button_custom_product_search
+    };
 
-  public ProductResultHandler(Activity activity, ParsedResult result, Result rawResult) {
-    super(activity, result, rawResult);
-    showGoogleShopperButton(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        ProductParsedResult productResult = (ProductParsedResult) getResult();
-        openGoogleShopper(productResult.getNormalizedProductID());
-      }
-    });
-  }
-
-  @Override
-  public int getButtonCount() {
-    return hasCustomProductSearch() ? buttons.length : buttons.length - 1;
-  }
-
-  @Override
-  public int getButtonText(int index) {
-    return buttons[index];
-  }
-
-  @Override
-  public void handleButtonPress(int index) {
-    ParsedResult rawResult = getResult();
-    String productID;
-    if (rawResult instanceof ProductParsedResult) {
-      productID = ((ProductParsedResult) rawResult).getNormalizedProductID();
-    } else if (rawResult instanceof ExpandedProductParsedResult) {
-      productID = ((ExpandedProductParsedResult) rawResult).getRawText();
-    } else {
-      throw new IllegalArgumentException(rawResult.getClass().toString());
+    public ProductResultHandler(Activity activity, ParsedResult result, Result rawResult)
+    {
+        super(activity, result, rawResult);
+        showGoogleShopperButton(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                ProductParsedResult productResult = (ProductParsedResult) getResult();
+                openGoogleShopper(productResult.getNormalizedProductID());
+            }
+        });
     }
-    
-    Intent intent = new Intent(Intent.ACTION_VIEW);
-    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-    intent.setClassName(getActivity(), ProductActivity.class.getName());
-    getActivity().startActivity(intent);
+
+    @Override
+    public int getButtonCount()
+    {
+        return hasCustomProductSearch() ? buttons.length : buttons.length - 1;
+    }
+
+    @Override
+    public int getButtonText(int index)
+    {
+        return buttons[index];
+    }
+
+    @Override
+    public void handleButtonPress(int index)
+    {
+        ParsedResult rawResult = getResult();
+        String productID;
+        if (rawResult instanceof ProductParsedResult)
+        {
+            productID = ((ProductParsedResult) rawResult).getNormalizedProductID();
+        }
+        else if (rawResult instanceof ExpandedProductParsedResult)
+        {
+            productID = ((ExpandedProductParsedResult) rawResult).getRawText();
+        }
+        else
+        {
+            throw new IllegalArgumentException(rawResult.getClass().toString());
+        }
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        intent.setClassName(getActivity(), ProductActivity.class.getName());
+        getActivity().startActivity(intent);
 
 //    switch (index) {
 //      case 0:

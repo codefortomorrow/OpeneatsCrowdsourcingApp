@@ -18,7 +18,7 @@ package com.google.zxing.client.android;
 
 import android.graphics.Bitmap;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;

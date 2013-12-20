@@ -19,7 +19,7 @@
 package com.google.zxing.client.android;
 
 import com.codefortomorrow.crowdsourcing.ProductActivity;
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;

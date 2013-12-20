@@ -1,7 +1,5 @@
 package com.codefortomorrow.crowdsourcing;
 
-import com.example.cameratest.R;
-
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -17,8 +15,10 @@ import android.widget.TextView;
 
 public class ProductActivity extends Activity
 {
-	TextView productView;
-	Button cameraButton;
+    private TextView productView;
+    private Button cameraButton;
+
+    private String productID;
 
 	@Override
 	protected void onDestroy()
@@ -70,7 +70,7 @@ public class ProductActivity extends Activity
 	{
 		//獲取 Scan Barcode
 		Intent intent = getIntent();
-		String productID = intent.getStringExtra("product_ID");
+		productID = intent.getStringExtra("product_ID");
 		productView.setText(productID);
 		
 	}
@@ -123,7 +123,8 @@ public class ProductActivity extends Activity
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 			intent.setClassName(ProductActivity.this, CrowdsourcingActivity.class.getName());
-			ProductActivity.this.startActivity(intent);
+            intent.putExtra("product_ID",productID);
+            ProductActivity.this.startActivity(intent);
 		}
 		
 	};
