@@ -87,7 +87,8 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         ivShoot3 = (ImageView) findViewById(R.id.iv_shoot3);
         ivTitle = (ImageView) findViewById(R.id.iv_title);
 
-		ivSamplePhoto = (ImageView)findViewById(R.id.iv_sample_photo);		progressBarBitmap1 = (ProgressBar) findViewById(R.id.progressBar_bitmap1);
+		ivSamplePhoto = (ImageView)findViewById(R.id.iv_sample_photo);
+        progressBarBitmap1 = (ProgressBar) findViewById(R.id.progressBar_bitmap1);
         progressBarBitmap2 = (ProgressBar) findViewById(R.id.progressBar_bitmap2);
         progressBarBitmap3 = (ProgressBar) findViewById(R.id.progressBar_bitmap3);
 
