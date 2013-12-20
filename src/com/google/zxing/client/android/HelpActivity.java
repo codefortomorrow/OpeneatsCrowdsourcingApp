@@ -16,7 +16,9 @@
 
 package com.google.zxing.client.android;
 
-import com.example.cameratest.R;
+
+
+import com.codefortomorrow.crowdsourcing.R;
 
 import android.app.Activity;
 import android.content.Intent;

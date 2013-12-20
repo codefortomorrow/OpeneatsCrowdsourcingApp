@@ -26,7 +26,9 @@ import android.preference.PreferenceScreen;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
+
+
 
 /**
  * The main settings activity.

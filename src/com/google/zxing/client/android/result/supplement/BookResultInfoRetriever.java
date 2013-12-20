@@ -23,7 +23,7 @@ import java.util.Collection;
 import android.content.Context;
 import android.widget.TextView;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.client.android.HttpHelper;
 import com.google.zxing.client.android.LocaleManager;
 

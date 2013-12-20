@@ -28,7 +28,9 @@ import android.util.Log;
 
 import java.io.IOException;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
+
+
 
 /**
  * Manages beeps and vibrations for {@link CaptureActivity}.

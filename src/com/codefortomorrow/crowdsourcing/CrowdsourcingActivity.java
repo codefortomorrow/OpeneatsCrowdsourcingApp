@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
@@ -222,19 +223,19 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             switch (msg.what)
             {
                 case 0:
-                    ivShoot1.setImageBitmap(BitmapFactory.decodeByteArray(out1.toByteArray(), 0, out1.size(), getBitmapOptions(2)));
+                    ivShoot1.setImageBitmap(resizeBitmapToSquare(BitmapFactory.decodeByteArray(out1.toByteArray(), 0, out1.size(), getBitmapOptions(2)), -90));
                     ivShoot1.setVisibility(View.VISIBLE);
                     progressBarBitmap1.setVisibility(View.GONE);
                     compressNum++;
                     break;
                 case 1:
-                    ivShoot2.setImageBitmap(BitmapFactory.decodeByteArray(out2.toByteArray(), 0, out2.size(), getBitmapOptions(2)));
+                    ivShoot2.setImageBitmap(resizeBitmapToSquare(BitmapFactory.decodeByteArray(out2.toByteArray(), 0, out2.size(), getBitmapOptions(2)), -90));
                     ivShoot2.setVisibility(View.VISIBLE);
                     progressBarBitmap2.setVisibility(View.GONE);
                     compressNum++;
                     break;
                 case 2:
-                    ivShoot3.setImageBitmap(BitmapFactory.decodeByteArray(out3.toByteArray(), 0, out3.size(), getBitmapOptions(2)));
+                    ivShoot3.setImageBitmap(resizeBitmapToSquare(BitmapFactory.decodeByteArray(out3.toByteArray(), 0, out3.size(), getBitmapOptions(2)),-90));
                     ivShoot3.setVisibility(View.VISIBLE);
                     progressBarBitmap3.setVisibility(View.GONE);
                     compressNum++;
@@ -321,7 +322,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 public void run()
                 {
                     Message msg = new Message();
-                    bmpRaw = resizeBitmapToSquare(bmpRaw);
+                    bmpRaw = resizeBitmapToSquare(bmpRaw, 90);
                     switch (compressNum)
                     {
                         case 0:
@@ -353,7 +354,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
     };
 
-    private Bitmap resizeBitmapToSquare(Bitmap bitmap)
+    private Bitmap resizeBitmapToSquare(Bitmap bitmap, float degree)
     {
         int startHeight, startWidth;
         int edgeLength;
@@ -370,7 +371,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             startWidth = 0;
             startHeight = (bitmap.getHeight() - bitmap.getWidth()) / 2;
         }
-        return Bitmap.createBitmap(bitmap, startWidth, startHeight, edgeLength, edgeLength);
+        Matrix matrix = new Matrix();
+        matrix.setRotate(degree);
+        return Bitmap.createBitmap(bitmap, startWidth, startHeight, edgeLength, edgeLength, matrix, true);
     }
 
     private BitmapFactory.Options getBitmapOptions(int scale)

@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.android;
 
-import com.example.cameratest.R;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.client.android.camera.CameraManager;
 
