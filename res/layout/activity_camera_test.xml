@@ -18,7 +18,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_gravity="center"
-        android:background="#FF95B9C7"/>
+        android:background="@drawable/photo_sample1"/>
     <SurfaceView 
         android:id="@+id/sv_camera_preview"
         android:layout_width="300dp"

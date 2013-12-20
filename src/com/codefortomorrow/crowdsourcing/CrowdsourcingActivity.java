@@ -52,6 +52,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     private Button btnShoot, btnBack;
     private ImageView ivShoot1, ivShoot2, ivShoot3;
     private ImageView      ivTitle;
+    private ImageView ivSamplePhoto;
     private LinearLayout   mLinearLayout;
     private Camera         mCamera;
     private ProgressDialog progressDialog;
@@ -83,6 +84,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         ivShoot2 = (ImageView) findViewById(R.id.iv_shoot2);
         ivShoot3 = (ImageView) findViewById(R.id.iv_shoot3);
         ivTitle = (ImageView) findViewById(R.id.iv_title);
+        ivSamplePhoto = (ImageView)findViewById(R.id.iv_sample_photo);
 
         mLinearLayout = (LinearLayout) findViewById(R.id.LinearLayout1);
 
@@ -116,6 +118,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     case 1:
                         ivShoot1.setImageResource(R.drawable.shoot1);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF95B9C7"));
+                        ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample1);
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF95B9C7"));
                         ivTitle.setImageResource(R.drawable.title_step1);
                         photoNum--;
@@ -123,6 +126,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     case 2:
                         ivShoot2.setImageResource(R.drawable.shoot2);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
+                        ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample2);
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                         ivTitle.setImageResource(R.drawable.title_step2);
                         photoNum--;
@@ -130,6 +134,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     case 3:
                         ivShoot3.setImageResource(R.drawable.shoot3);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
+                        ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample3);
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                         ivTitle.setImageResource(R.drawable.title_step3);
                         photoNum--;
@@ -198,6 +203,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     bmp.compress(Bitmap.CompressFormat.JPEG, 30, out1);
                     ivShoot1.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
+                    ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample2);
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                     ivTitle.setImageResource(R.drawable.title_step2);
                     photoNum++;
@@ -206,6 +212,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     bmp.compress(Bitmap.CompressFormat.JPEG, 30, out2);
                     ivShoot2.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
+                    ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample3);
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                     ivTitle.setImageResource(R.drawable.title_step3);
                     photoNum++;
@@ -214,6 +221,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     bmp.compress(Bitmap.CompressFormat.JPEG, 30, out3);
                     ivShoot3.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2DFF49"));
+                    ivSamplePhoto.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     ivTitle.setImageResource(R.drawable.title_finish);
                     photoNum++;
