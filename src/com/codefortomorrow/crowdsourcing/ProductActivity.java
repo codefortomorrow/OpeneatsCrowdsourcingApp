@@ -1,13 +1,17 @@
 package com.codefortomorrow.crowdsourcing;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +23,8 @@ public class ProductActivity extends Activity
     private Button cameraButton;
 
     private String productID;
+
+    private  String TAG = "Lee";
 
 	@Override
 	protected void onDestroy()
@@ -72,7 +78,14 @@ public class ProductActivity extends Activity
 		Intent intent = getIntent();
 		productID = intent.getStringExtra("product_ID");
 		productView.setText(productID);
-		
+
+        AccountManager accountManager = AccountManager.get(this);
+        Account[] accounts = accountManager.getAccountsByType("com.google");
+        for (Account account: accounts)
+        {
+            Log.d(TAG, account.name);
+        }
+
 	}
 	
 	private BroadcastReceiver broadcast =  new BroadcastReceiver() 
@@ -124,6 +137,7 @@ public class ProductActivity extends Activity
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 			intent.setClassName(ProductActivity.this, CrowdsourcingActivity.class.getName());
             intent.putExtra("product_ID",productID);
+
             ProductActivity.this.startActivity(intent);
 		}
 		
