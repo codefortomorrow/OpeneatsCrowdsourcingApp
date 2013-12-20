@@ -1,15 +1,7 @@
 package com.codefortomorrow.crowdsourcing;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.HashMap;
+import java.io.*;
 import java.util.List;
-import java.util.Map;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -32,17 +24,20 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import ch.boye.httpclientandroidlib.HttpEntity;
+import ch.boye.httpclientandroidlib.HttpResponse;
+import ch.boye.httpclientandroidlib.client.ClientProtocolException;
+import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.ResponseHandler;
+import ch.boye.httpclientandroidlib.client.methods.HttpPost;
 import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
 import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
 import ch.boye.httpclientandroidlib.entity.mime.content.ByteArrayBody;
-import ch.boye.httpclientandroidlib.entity.mime.content.FileBody;
 import ch.boye.httpclientandroidlib.entity.mime.content.StringBody;
-import com.android.volley.*;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
+import ch.boye.httpclientandroidlib.util.EntityUtils;
 import com.example.cameratest.R;
 
-import static java.lang.reflect.Method.*;
 
 public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Callback {
 	
@@ -147,30 +142,52 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         }
     };
 
-    private Response.Listener<String> updatePicListener = new Response.Listener<String>()
+//    private Response.Listener<String> updatePicListener = new Response.Listener<String>()
+//    {
+//        @Override
+//        public void onResponse(String s)
+//        {
+//            Log.d(TAG, "update success");
+//            progressDialog.dismiss();
+//            Intent intent = new Intent(Intent.ACTION_VIEW);
+//            intent.setClassName(CrowdsourcingActivity.this, FinishActivity.class.getName());
+//
+//            CrowdsourcingActivity.this.startActivity(intent);
+////            this.finishActivity();
+//        }
+//    };
+//
+//    private Response.ErrorListener updatePicErrorListener = new Response.ErrorListener()
+//    {
+//        @Override
+//        public void onErrorResponse(VolleyError volleyError)
+//        {
+//            Log.d(TAG, "update Error: " + volleyError.toString() + " message: " + volleyError.getMessage());
+//            progressDialog.dismiss();
+//        }
+//    };
+
+    private class PhotoResponseHandler implements ResponseHandler<Object>
     {
         @Override
-        public void onResponse(String s)
+        public Object handleResponse(HttpResponse httpResponse) throws  IOException
         {
-            Log.d(TAG, "update success");
+            HttpEntity resEntity = httpResponse.getEntity();
+            String response = EntityUtils.toString(resEntity);
             progressDialog.dismiss();
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName(CrowdsourcingActivity.this, FinishActivity.class.getName());
 
-            CrowdsourcingActivity.this.startActivity(intent);
-//        this.finishActivity();
+            if(response.contains("Success"))
+            {
+                startFinishActivity();
+            }
+            else
+            {
+                Log.d(TAG, "Error");
+            }
+            Log.d(TAG, response);
+            return null;
         }
-    };
-
-    private Response.ErrorListener updatePicErrorListener = new Response.ErrorListener()
-    {
-        @Override
-        public void onErrorResponse(VolleyError volleyError)
-        {
-            Log.d(TAG, "update Error: " + volleyError.toString());
-            progressDialog.dismiss();
-        }
-    };
+    }
 
     private PictureCallback jpeg = new PictureCallback()
     {
@@ -338,51 +355,102 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
     private void updatingPics()
     {
+        // 測試上傳 強制在主執行緒中執行網路
+//        if (android.os.Build.VERSION.SDK_INT > 9) {
+//            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+//            StrictMode.setThreadPolicy(policy);
+//        }
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Updating");
         progressDialog.setMessage("Updating the pictures");
         progressDialog.show();
 
-        Log.d(TAG, "Start updating");
-        StringRequest picReq = new StringRequest(Request.Method.POST, "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload", updatePicListener, updatePicErrorListener)
+        //設置執行緒  執行照片上傳
+        new Thread(new Runnable()
         {
-            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-
             @Override
-            public byte[] getBody() throws AuthFailureError
+            public void run()
             {
-                ByteArrayOutputStream transit = new ByteArrayOutputStream();
-                entity.addPart("file", new ByteArrayBody("12312".getBytes(), "pic0.jpg"));
-                entity.addPart("file", new ByteArrayBody("12312".getBytes(), "pic1.jpg"));
-                entity.addPart("file", new ByteArrayBody("123123123".getBytes(), "pic2.jpg"));
-
+                Log.d(TAG, "Start updating");
+                HttpClient client = new DefaultHttpClient();
+                HttpPost updatePhoto = new HttpPost("http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload");
+                MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
                 try
                 {
                     entity.addPart("app_user_id", new StringBody("1111"));
                     entity.addPart("barcode", new StringBody("12321"));
+                    entity.addPart("pic0", new ByteArrayBody(out1.toByteArray(), "file", "pic0.jpg"));
+                    entity.addPart("pic1", new ByteArrayBody(out2.toByteArray(), "file", "pic1.jpg"));
+                    entity.addPart("pic2", new ByteArrayBody(out3.toByteArray(), "file", "pic2.jpg"));
+                    updatePhoto.setEntity(entity);
+                    client.execute(updatePhoto, new PhotoResponseHandler());
 
-                    entity.writeTo(transit);
-                    Log.d(TAG, String.valueOf(transit.size()));
                 }
                 catch (Exception e)
                 {
                     Log.d(TAG, e.toString());
                 }
-                return transit.toByteArray();
-//                return super.getBody();
             }
+        }).start();
 
-            @Override
-            public String getBodyContentType()
-            {
-                Log.d(TAG, entity.getContentType().getValue());
-                return entity.getContentType().getValue();
-//                return super.getBodyContentType();
-            }
-        };
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(picReq);
+
+//        StringRequest picReq = new StringRequest(Request.Method.POST, "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload", updatePicListener, updatePicErrorListener)
+//        {
+//            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+//
+//            @Override
+//            public byte[] getBody() throws AuthFailureError
+//            {
+//                ByteArrayOutputStream transit = new ByteArrayOutputStream();
+//                entity.addPart("pic0", new ByteArrayBody(out1.toByteArray(), "file", "pic0.jpg"));
+//                entity.addPart("pic1", new ByteArrayBody(out2.toByteArray(), "file", "pic1.jpg"));
+//                entity.addPart("pic2", new ByteArrayBody(out3.toByteArray(), "file", "pic2.jpg"));
+//
+//                try
+//                {
+//                    entity.addPart("app_user_id", new StringBody("1111"));
+//                    entity.addPart("barcode", new StringBody("12321"));
+//
+//                    entity.writeTo(transit);
+//                    Log.d(TAG, String.valueOf(transit.size()));
+//                }
+//                catch (Exception e)
+//                {
+//                    Log.d(TAG, e.toString());
+//                }
+//                return transit.toByteArray();
+////                return super.getBody();
+//            }
+//
+//            @Override
+//            public String getBodyContentType()
+//            {
+//                Log.d(TAG, entity.getContentType().getValue());
+//                return entity.getContentType().getValue();
+////                return super.getBodyContentType();
+//            }
+//        };
+//
+//        RequestQueue queue = Volley.newRequestQueue(this);
+//        try
+//        {
+//            System.out.print(picReq.getBody().toString());
+//        }
+//        catch (Exception e)
+//        {
+//            Log.d(TAG, e.toString());
+//        }
+//        queue.add(picReq);
+    }
+
+    private void startFinishActivity()
+    {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setClassName(this, FinishActivity.class.getName());
+        this.startActivity(intent);
+        this.finish();
     }
 
 
