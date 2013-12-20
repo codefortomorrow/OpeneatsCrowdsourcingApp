@@ -2,6 +2,7 @@ package com.codefortomorrow.crowdsourcing;
 
 import java.io.*;
 import java.util.List;
+import java.util.logging.LogRecord;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -13,6 +14,8 @@ import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -20,13 +23,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.*;
 
 import ch.boye.httpclientandroidlib.HttpEntity;
 import ch.boye.httpclientandroidlib.HttpResponse;
-import ch.boye.httpclientandroidlib.client.ClientProtocolException;
 import ch.boye.httpclientandroidlib.client.HttpClient;
 import ch.boye.httpclientandroidlib.client.ResponseHandler;
 import ch.boye.httpclientandroidlib.client.methods.HttpPost;
@@ -41,6 +41,7 @@ import ch.boye.httpclientandroidlib.util.EntityUtils;
 public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Callback {
 	
 	private int photoNum = 0;
+    private int compressNum = 0;
     private String productID;
 
 	private SurfaceHolder surfaceHolder;
@@ -51,6 +52,11 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     private LinearLayout   mLinearLayout;
     private Camera         mCamera;
     private ProgressDialog progressDialog;
+    private ProgressBar progressBarBitmap1;
+    private ProgressBar progressBarBitmap2;
+    private ProgressBar progressBarBitmap3;
+    private Bitmap bmpRaw;
+
     //ByteArrayOutputStreams for uploading to server
     private ByteArrayOutputStream out1 = new ByteArrayOutputStream();
     private ByteArrayOutputStream out2 = new ByteArrayOutputStream();
@@ -79,6 +85,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         ivShoot2 = (ImageView) findViewById(R.id.iv_shoot2);
         ivShoot3 = (ImageView) findViewById(R.id.iv_shoot3);
         ivTitle = (ImageView) findViewById(R.id.iv_title);
+        progressBarBitmap1 = (ProgressBar) findViewById(R.id.progressBar_bitmap1);
+        progressBarBitmap2 = (ProgressBar) findViewById(R.id.progressBar_bitmap2);
+        progressBarBitmap3 = (ProgressBar) findViewById(R.id.progressBar_bitmap3);
 
         mLinearLayout = (LinearLayout) findViewById(R.id.LinearLayout1);
 
@@ -122,6 +131,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         ivTitle.setBackgroundColor(Color.parseColor("#FF95B9C7"));
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF95B9C7"));
                         ivTitle.setImageResource(R.drawable.title_step1);
+                        compressNum--;
                         photoNum--;
                         break;
                     case 2:
@@ -129,6 +139,8 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                         ivTitle.setImageResource(R.drawable.title_step2);
+                        btnShoot.setText("");
+                        compressNum--;
                         photoNum--;
                         break;
                     case 3:
@@ -137,7 +149,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                         ivTitle.setImageResource(R.drawable.title_step3);
                         photoNum--;
+                        compressNum--;
                         btnShoot.setBackgroundResource(R.drawable.btn_shoot);
+                        btnShoot.setText("o");
                         break;
                     default:
                         break;
@@ -174,13 +188,13 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     private class PhotoResponseHandler implements ResponseHandler<Object>
     {
         @Override
-        public Object handleResponse(HttpResponse httpResponse) throws  IOException
+        public Object handleResponse(HttpResponse httpResponse) throws IOException
         {
             HttpEntity resEntity = httpResponse.getEntity();
             String response = EntityUtils.toString(resEntity);
             progressDialog.dismiss();
 
-            if(response.contains("Success"))
+            if (response.contains("Success"))
             {
                 startFinishActivity();
             }
@@ -193,6 +207,38 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
+    private Handler handler = new Handler()
+    {
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+                case 0:
+                    ivShoot1.setImageBitmap(BitmapFactory.decodeByteArray(out1.toByteArray(), 0, out1.size(), getBitmapOptions(2)));
+                    ivShoot1.setVisibility(View.VISIBLE);
+                    progressBarBitmap1.setVisibility(View.GONE);
+                    compressNum++;
+                    break;
+                case 1:
+                    ivShoot2.setImageBitmap(BitmapFactory.decodeByteArray(out2.toByteArray(), 0, out2.size(), getBitmapOptions(2)));
+                    ivShoot2.setVisibility(View.VISIBLE);
+                    progressBarBitmap2.setVisibility(View.GONE);
+                    compressNum++;
+                    break;
+                case 2:
+                    ivShoot3.setImageBitmap(BitmapFactory.decodeByteArray(out3.toByteArray(), 0, out3.size(), getBitmapOptions(2)));
+                    ivShoot3.setVisibility(View.VISIBLE);
+                    progressBarBitmap3.setVisibility(View.GONE);
+                    compressNum++;
+                    break;
+                default:
+
+                    break;
+            }
+
+        }
+    };
+
     private PictureCallback jpeg = new PictureCallback()
     {
 
@@ -202,43 +248,52 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //			Bitmap bmp1Raw = BitmapFactory.decodeByteArray(data,0, data.length);
             InputStream inputStream = new ByteArrayInputStream(data);
             //Use BitmapFactory options to avoid the Out of Memory issue
-            Bitmap bmpRaw = BitmapFactory.decodeStream(inputStream, null, getBitmapOptions(2));
-            Bitmap bmp = resizeBitmapToSquare(bmpRaw);
+            bmpRaw = BitmapFactory.decodeStream(inputStream, null, getBitmapOptions(2));
+//            Bitmap bmp = resizeBitmapToSquare(bmpRaw);
 
             FileOutputStream fop;
 
-            try
-            {
-                fop = new FileOutputStream("/sdcard/d" + photoNum + ".jpg");
-                bmp.compress(Bitmap.CompressFormat.JPEG, 30, fop);
-            }
-            catch (FileNotFoundException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+//            try
+//            {
+//                fop = new FileOutputStream("/sdcard/d" + photoNum + ".jpg");
+//                bmp.compress(Bitmap.CompressFormat.JPEG, 30, fop);
+//            }
+//            catch (FileNotFoundException e)
+//            {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
 
             switch (photoNum)
             {
                 case 0:
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out1);
-                    ivShoot1.setImageBitmap(bmp);
+                    ivShoot1.setVisibility(View.INVISIBLE);
+                    progressBarBitmap1.setVisibility(View.VISIBLE);
+                    progressBarBitmap1.setProgress(0);
+//                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out1);
+//                    ivShoot1.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                     ivTitle.setImageResource(R.drawable.title_step2);
                     photoNum++;
                     break;
                 case 1:
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out2);
-                    ivShoot2.setImageBitmap(bmp);
+                    ivShoot2.setVisibility(View.INVISIBLE);
+                    progressBarBitmap2.setVisibility(View.VISIBLE);
+                    progressBarBitmap2.setProgress(0);
+//                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out2);
+//                    ivShoot2.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                     ivTitle.setImageResource(R.drawable.title_step3);
                     photoNum++;
                     break;
                 case 2:
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out3);
-                    ivShoot3.setImageBitmap(bmp);
+                    ivShoot3.setVisibility(View.INVISIBLE);
+                    progressBarBitmap3.setVisibility(View.VISIBLE);
+                    progressBarBitmap3.setProgress(0);
+//                    bmp.compress(Bitmap.CompressFormat.JPEG, 30, out3);
+//                    ivShoot3.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     mLinearLayout.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     ivTitle.setImageResource(R.drawable.title_finish);
@@ -249,6 +304,34 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     break;
             }
 
+            new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    Message msg = new Message();
+                    bmpRaw = resizeBitmapToSquare(bmpRaw);
+                    switch (compressNum)
+                    {
+                        case 0:
+                            bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out1);
+                            msg.what = 0;
+                            break;
+                        case 1:
+                            bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out2);
+                            msg.what = 1;
+                            break;
+                        case 2:
+                            bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out3);
+                            msg.what = 2;
+                            break;
+                        default:
+                            break;
+                    }
+                    bmpRaw.recycle();
+                    handler.sendMessage(msg);
+                }
+            }).start();
 //			bmp.recycle();
 //			System.gc();
 
@@ -394,7 +477,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 }
             }
         }).start();
-
 
 
 //        StringRequest picReq = new StringRequest(Request.Method.POST, "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload", updatePicListener, updatePicErrorListener)
