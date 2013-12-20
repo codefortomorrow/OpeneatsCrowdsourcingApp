@@ -16,8 +16,13 @@ gen/
 .classpath
 .project
 
-
 # IntelliJ IDEA project files
 .idea/
 *.eml
 *.iml
+
+# Proguard file
+proguard_logs/
+
+# Gradle
+# gradle/
