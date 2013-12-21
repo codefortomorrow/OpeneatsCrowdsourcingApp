@@ -75,7 +75,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         //use fullscreen
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_camera_test);
+        setContentView(R.layout.activity_crowdsourcing);
         //set screen orientation
         setRequestedOrientation(0);
         //set up buttons
