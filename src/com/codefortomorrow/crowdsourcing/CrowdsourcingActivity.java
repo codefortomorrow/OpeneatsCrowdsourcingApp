@@ -473,6 +473,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 Log.d(TAG, "Start updating");
                 HttpClient client = new DefaultHttpClient();
                 HttpPost updatePhoto = new HttpPost("http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload");
+//                HttpPost updatePhoto = new HttpPost("http://192.168.155.239/api/1.0/upload");
                 MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
                 try
                 {
