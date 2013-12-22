@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import com.google.zxing.client.android.CaptureActivity;
 
 
@@ -14,6 +15,7 @@ import com.google.zxing.client.android.CaptureActivity;
 public class FinishActivity extends Activity
 {
     private Button finishButton;
+    private TextView finishTextView;
 
     public void onCreate(Bundle savedInstanceState)
     {
@@ -21,12 +23,14 @@ public class FinishActivity extends Activity
         setContentView(R.layout.act_finish);
         findView();
         setListener();
+        loadData();
 
     }
 
     private void findView()
     {
         finishButton = (Button) findViewById(R.id.button_finish);
+        finishTextView = (TextView) findViewById(R.id.textView_finish);
     }
 
     private void setListener()
@@ -36,7 +40,12 @@ public class FinishActivity extends Activity
 
     private void loadData()
     {
-
+        Intent intent = getIntent();
+        String updateMsg = intent.getStringExtra("updateMsg");
+        if(!updateMsg.contains("Success"));
+        {
+            finishTextView.setText(updateMsg);
+        }
     }
 
     private Button.OnClickListener btn_finish_click = new Button.OnClickListener()

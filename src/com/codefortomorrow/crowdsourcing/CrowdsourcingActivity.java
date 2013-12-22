@@ -205,11 +205,12 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
             if (response.contains("Success"))
             {
-                startFinishActivity();
+                startFinishActivity(response);
             }
             else
             {
                 Log.d(TAG, "Error");
+                startFinishActivity(response);
             }
             Log.d(TAG, response);
             return null;
@@ -543,10 +544,11 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //        queue.add(picReq);
     }
 
-    private void startFinishActivity()
+    private void startFinishActivity(String msg)
     {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setClassName(this, FinishActivity.class.getName());
+        intent.putExtra("updateMsg", msg);
         this.startActivity(intent);
         this.finish();
     }
