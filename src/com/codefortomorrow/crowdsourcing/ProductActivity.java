@@ -13,6 +13,11 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import ch.boye.httpclientandroidlib.HttpEntity;
+import ch.boye.httpclientandroidlib.HttpResponse;
+import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.methods.HttpGet;
+import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 
 import java.util.UUID;
 
@@ -88,6 +93,7 @@ public class ProductActivity extends Activity
             Log.d(TAG, account.name);
         }
 
+        // load preferences
         SharedPreferences sp = getSharedPreferences(PREF_NAME, Context.MODE_WORLD_WRITEABLE);
         contentUUID = sp.getString(PREF_KEY, "");
         if(contentUUID.equals(""))
@@ -96,6 +102,31 @@ public class ProductActivity extends Activity
             sp.edit().putString(PREF_KEY, contentUUID).commit();
         }
         Log.d(TAG, "uuid: " + contentUUID);
+
+//        ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//        NetworkInfo networkInfo = connect.getActiveNetworkInfo();
+//        boolean checkNetwork = false;
+//        if(networkInfo != null)
+//        {
+//            if(networkInfo.isAvailable())
+//            {
+//                checkNetwork = true;
+//            }
+//        }
+//        if(checkNetwork)
+//        {
+//            HttpClient client = new DefaultHttpClient();
+//            HttpGet getAcceptUpload = new HttpGet("http://openeatscs.yuchuan1.cloudbees.net/api/1.0/acceptUpload/" + productID);
+//            try
+//            {
+//                HttpResponse responseAcceptUpload = client.execute(getAcceptUpload);
+//                HttpEntity resEntity = responseAcceptUpload.getEntity();
+//            }
+//            catch (Exception e)
+//            {
+//
+//            }
+//        }
 	}
 	
 	private BroadcastReceiver broadcast =  new BroadcastReceiver() 

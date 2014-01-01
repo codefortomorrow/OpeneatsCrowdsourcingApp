@@ -133,6 +133,7 @@
         <activity android:name="com.codefortomorrow.crowdsourcing.FinishActivity"
                   android:screenOrientation="portrait" >
         </activity>
+        <service android:name=".service.CrowdsourcingService"/>
     </application>
 
 </manifest>
