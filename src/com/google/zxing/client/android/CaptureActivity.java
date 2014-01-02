@@ -20,6 +20,7 @@ package com.google.zxing.client.android;
 
 import com.codefortomorrow.crowdsourcing.ProductActivity;
 import com.codefortomorrow.crowdsourcing.R;
+import com.codefortomorrow.crowdsourcing.service.CrowdsourcingService;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
@@ -82,6 +83,9 @@ import java.util.Set;
  * @author Sean Owen
  */
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
+
+  private static final String CS_SERVICE_ACTION = "OpenEats.CrowdSourcingApp";
+  private static final String CS_SERVICE_CONTROLTYPE = "controlType";
 
   private static final String TAG = CaptureActivity.class.getSimpleName();
 
@@ -252,7 +256,18 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
       characterSet = intent.getStringExtra(Intents.Scan.CHARACTER_SET);
 
     }
+    StartCSService();
   }
+
+    private void StartCSService()
+    {
+        Intent intent = new Intent(CaptureActivity.this, CrowdsourcingService.class);
+        Bundle CSbundle = new Bundle();
+        CSbundle.putChar(CS_SERVICE_CONTROLTYPE, 'B');
+        intent.putExtras(CSbundle);
+        intent.setAction(CS_SERVICE_ACTION);
+        this.startService(intent);
+    }
   
   private static boolean isZXingURL(String dataString) {
     if (dataString == null) {

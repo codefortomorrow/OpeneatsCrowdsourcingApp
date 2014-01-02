@@ -131,7 +131,6 @@ public class ProductActivity extends Activity
 	
 	private BroadcastReceiver broadcast =  new BroadcastReceiver() 
 	{
-
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
