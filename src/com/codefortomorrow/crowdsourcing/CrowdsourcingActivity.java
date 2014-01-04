@@ -5,12 +5,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -45,6 +49,7 @@ import ch.boye.httpclientandroidlib.entity.mime.content.ByteArrayBody;
 import ch.boye.httpclientandroidlib.entity.mime.content.StringBody;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
+import com.openeatsCS.app.model.*;
 
 
 @SuppressLint("NewApi")
@@ -64,20 +69,31 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     private Button btnShoot, btnBack;
     private ImageView ivShoot1, ivShoot2, ivShoot3;
     private ImageView      ivTitle;
-    private ImageView ivSamplePhoto;
+    private ImageView      ivSamplePhoto;
     private Camera         mCamera;
     private ProgressDialog progressDialog;
-    private ProgressBar progressBarBitmap1;
-    private ProgressBar progressBarBitmap2;
-    private ProgressBar progressBarBitmap3;
-    private Bitmap bmpRaw;
+    private ProgressBar    progressBarBitmap1;
+    private ProgressBar    progressBarBitmap2;
+    private ProgressBar    progressBarBitmap3;
+    private Bitmap         bmpRaw;
 
     //ByteArrayOutputStreams for uploading to server
     private ByteArrayOutputStream out1 = new ByteArrayOutputStream();
     private ByteArrayOutputStream out2 = new ByteArrayOutputStream();
     private ByteArrayOutputStream out3 = new ByteArrayOutputStream();
 
-    final private String TAG = "Lee";
+    // green dao
+    private DaoMaster.DevOpenHelper devOpenHelper;
+    private SQLiteDatabase          db;
+    private DaoMaster               daoMaster;
+    private DaoSession              daoSession;
+    private BarcodeDao              barcodeDao;
+    private HistoryDao              historyDao;
+
+    //'T'hh:mm:ss.SSS'Z'"); // example: 2013-11-11T12:21:48.033Z
+//    final private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+
+    final private String TAG  = "Lee";
     final private String TAGG = "mmpud";
 
     @Override
@@ -99,10 +115,10 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         screenWidth = size.x;
         Log.d(TAGG, "phone screen: " + screenWidth + ", " + screenHeight);
         //set up the upper and down cover
-        ivCoverUp = (ImageView)findViewById(R.id.iv_cover_up);
-        ivCoverDown = (ImageView)findViewById(R.id.iv_cover_down);
-        ivCoverUp.getLayoutParams().width = (screenWidth-screenHeight)/2;
-        ivCoverDown.getLayoutParams().width = (screenWidth-screenHeight)/2;
+        ivCoverUp = (ImageView) findViewById(R.id.iv_cover_up);
+        ivCoverDown = (ImageView) findViewById(R.id.iv_cover_down);
+        ivCoverUp.getLayoutParams().width = (screenWidth - screenHeight) / 2;
+        ivCoverDown.getLayoutParams().width = (screenWidth - screenHeight) / 2;
         //set up buttons
         btnShoot = (Button) findViewById(R.id.btn_shoot);
         btnBack = (Button) findViewById(R.id.btn_back);
@@ -114,7 +130,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         ivShoot3 = (ImageView) findViewById(R.id.iv_shoot3);
         ivTitle = (ImageView) findViewById(R.id.iv_title);
 
-		ivSamplePhoto = (ImageView)findViewById(R.id.iv_sample_photo);
+        ivSamplePhoto = (ImageView) findViewById(R.id.iv_sample_photo);
         progressBarBitmap1 = (ProgressBar) findViewById(R.id.progressBar_bitmap1);
         progressBarBitmap2 = (ProgressBar) findViewById(R.id.progressBar_bitmap2);
         progressBarBitmap3 = (ProgressBar) findViewById(R.id.progressBar_bitmap3);
@@ -133,6 +149,47 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         Intent intent = getIntent();
         productID = intent.getStringExtra("product_ID");
         contentUUID = intent.getStringExtra("UUID");
+
+        // setup db
+        devOpenHelper = new DaoMaster.DevOpenHelper(CrowdsourcingActivity.this, "openeatsCS-db", null);
+        db = devOpenHelper.getWritableDatabase();
+        daoMaster = new DaoMaster(db);
+        daoSession = daoMaster.newSession();
+        barcodeDao = daoSession.getBarcodeDao();
+        historyDao = daoSession.getHistoryDao();
+
+        setTestDataBase();
+    }
+
+    private void setTestDataBase()
+    {
+        Barcode barcode = new Barcode();
+        barcode.setBarcode("123456");
+        barcode.setName("drink");
+        barcode.setLoc_photo1("123");
+        barcode.setLoc_photo2("456");
+        barcode.setLoc_photo3("789");
+        barcode.setFinish(false);
+        barcode.setUpdate(false);
+        barcode.setUpdate(false);
+        barcodeDao.insert(barcode);
+        Log.d(TAG, "add new barcode: " + barcode.getBarcode());
+
+        // 讀取現在日期
+        Date currentDate = new Date();
+
+        // 設定 + one hour to upload
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(Calendar.HOUR, +1);
+
+        History history = new History();
+        history.setBarcode(barcode);
+        history.setCreated_at(currentDate);
+        history.setUpdated_at(calendar.getTime());
+        historyDao.insert(history);
+        Log.d(TAG, "add history: " + history.getCreated_at());
+
     }
 
     private OnClickListener myOnClickListener = new OnClickListener()
@@ -256,7 +313,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     compressNum++;
                     break;
                 case 2:
-                    ivShoot3.setImageBitmap(resizeBitmapToSquare(BitmapFactory.decodeByteArray(out3.toByteArray(), 0, out3.size(), getBitmapOptions(2)),-90));
+                    ivShoot3.setImageBitmap(resizeBitmapToSquare(BitmapFactory.decodeByteArray(out3.toByteArray(), 0, out3.size(), getBitmapOptions(2)), -90));
                     ivShoot3.setVisibility(View.VISIBLE);
                     progressBarBitmap3.setVisibility(View.GONE);
                     compressNum++;
@@ -344,17 +401,17 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     switch (compressNum)
                     {
                         case 0:
-                        	out1.reset();
+                            out1.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out1);
                             msg.what = 0;
                             break;
                         case 1:
-                        	out2.reset();
+                            out2.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out2);
                             msg.what = 1;
                             break;
                         case 2:
-                        	out3.reset();
+                            out3.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out3);
                             msg.what = 2;
                             break;
@@ -436,15 +493,16 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 Log.d(TAGG, previewSizes.get(i).width + ", " + previewSizes.get(i).height);
 
                 previewSize = previewSizes.get(i);
-                int largeEdge = (previewSize.width>previewSize.height)? previewSize.width:previewSize.height;
-                Log.d(TAGG, "largeEdge = "+ largeEdge);
-                if(largeEdge<=screenHeight)
-                	break;
+                int largeEdge = (previewSize.width > previewSize.height) ? previewSize.width : previewSize.height;
+                Log.d(TAGG, "largeEdge = " + largeEdge);
+                if (largeEdge <= screenHeight)
+                    break;
             }
             Log.d(TAGG, previewSize.width + ", " + previewSize.height);
-            android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(screenHeight*previewSize.width/previewSize.height, screenHeight, Gravity.CENTER);
+            android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                    screenHeight * previewSize.width / previewSize.height, screenHeight, Gravity.CENTER);
             svCameraPreview.setLayoutParams(params);
-            
+
             parameters.setPreviewSize(previewSize.width, previewSize.height);
             mCamera.setParameters(parameters);
             mCamera.setPreviewDisplay(surfaceHolder);
