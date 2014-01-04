@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.5.+'
+        classpath 'com.google.code.gson:gson:1.7.2'
     }
 }
 apply plugin: 'android'

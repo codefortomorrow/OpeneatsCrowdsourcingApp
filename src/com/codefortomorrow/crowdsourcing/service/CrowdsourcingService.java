@@ -13,9 +13,15 @@ import android.util.Log;
 import ch.boye.httpclientandroidlib.HttpEntity;
 import ch.boye.httpclientandroidlib.HttpResponse;
 import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.ResponseHandler;
 import ch.boye.httpclientandroidlib.client.methods.HttpGet;
 import ch.boye.httpclientandroidlib.client.methods.HttpPost;
+import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
+import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
+import ch.boye.httpclientandroidlib.util.EntityUtils;
+
+import java.io.IOException;
 
 /**
  * Created by Lee on 2014/1/1.
@@ -74,6 +80,28 @@ public class CrowdsourcingService extends Service
         return START_REDELIVER_INTENT;
     }
 
+    private class PhotoResponseHandler implements ResponseHandler<Object>
+    {
+        @Override
+        public Object handleResponse(HttpResponse httpResponse) throws IOException
+        {
+            HttpEntity resEntity = httpResponse.getEntity();
+            String response = EntityUtils.toString(resEntity);
+
+            if (response.contains("Success"))
+            {
+
+            }
+            else
+            {
+                Log.d(TAG, "Error");
+
+            }
+            Log.d(TAG, response);
+            return null;
+        }
+    }
+
     private void intentHandler(Intent intent)
     {
         String action = intent.getAction();
@@ -97,38 +125,22 @@ public class CrowdsourcingService extends Service
                 case 'B':
                     if (networkIsAvailable)
                     {
-                        try
-                        {
-                            getBarcodeList = new HttpGet(EXISTBARCODELIST);
-                            response = client.execute(getBarcodeList);
-                            resEntity = response.getEntity();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.d(TAG, controlType + " error: "+ e.toString());
-                        }
+                        // get barcode list
+                        getBarcodeList();
                     }
                     break;
                 case 'A':
                     if (networkIsAvailable)
                     {
-                        try
-                        {
-                            String barcode = bundle.getString("barcode");
-                            getAcceptUpload = new HttpGet(ACCEPTUPLOAD + barcode);
-                            response = client.execute(getAcceptUpload);
-                            resEntity = response.getEntity();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.d(TAG, controlType + " error: "+ e.toString());
-                        }
+                        // check server accept uploading or not
+                        acceptUpload(bundle.getString("barcode"));
                     }
                     break;
                 case 'U':
                     if (networkIsAvailable)
                     {
-
+                        // upload photos
+                        uploadPhotos();
                     }
                     break;
                 case 'S':
@@ -143,6 +155,71 @@ public class CrowdsourcingService extends Service
         {
 
         }
+    }
+
+    private void getBarcodeList()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    getBarcodeList = new HttpGet(EXISTBARCODELIST);
+                    response = client.execute(getBarcodeList);
+                    resEntity = response.getEntity();
+                }
+                catch (Exception e)
+                {
+                    Log.d(TAG,"get barcode list error: "+ e.toString());
+                }
+            }
+        }).start();
+    }
+
+    private void uploadPhotos()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    postPhoto = new HttpPost(UPLOADPHOTO);
+                    MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+
+                    client.execute(postPhoto, new PhotoResponseHandler());
+                }
+                catch (Exception e)
+                {
+                    Log.d(TAG, "upload photo error: " + e.toString());
+                }
+            }
+        }).start();
+    }
+
+    private void acceptUpload(final String barcode)
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    getAcceptUpload = new HttpGet(ACCEPTUPLOAD + barcode);
+                    response = client.execute(getAcceptUpload);
+                    resEntity = response.getEntity();
+                }
+                catch (Exception e)
+                {
+                    Log.d(TAG, "accept Upload error: "+ e.toString());
+                }
+            }
+        }).start();
     }
 
     public IBinder onBind(Intent intent)
