@@ -344,14 +344,17 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                     switch (compressNum)
                     {
                         case 0:
+                        	out1.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out1);
                             msg.what = 0;
                             break;
                         case 1:
+                        	out2.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out2);
                             msg.what = 1;
                             break;
                         case 2:
+                        	out3.reset();
                             bmpRaw.compress(Bitmap.CompressFormat.JPEG, 30, out3);
                             msg.what = 2;
                             break;
