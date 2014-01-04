@@ -1,9 +1,13 @@
 package com.codefortomorrow.crowdsourcing;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import java.util.logging.LogRecord;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -11,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
@@ -18,14 +23,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.*;
-
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import ch.boye.httpclientandroidlib.HttpEntity;
 import ch.boye.httpclientandroidlib.HttpResponse;
 import ch.boye.httpclientandroidlib.client.HttpClient;
@@ -39,20 +47,24 @@ import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
 
 
+@SuppressLint("NewApi")
 public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Callback {
+	
+	private int screenHeight;
+    private int screenWidth;
 	
 	private int photoNum = 0;
     private int compressNum = 0;
     private String productID;
     private String contentUUID;
 
+    private ImageView ivCoverUp, ivCoverDown;
 	private SurfaceHolder surfaceHolder;
     private SurfaceView svCameraPreview;
     private Button btnShoot, btnBack;
     private ImageView ivShoot1, ivShoot2, ivShoot3;
     private ImageView      ivTitle;
     private ImageView ivSamplePhoto;
-    private LinearLayout   mLinearLayout;
     private Camera         mCamera;
     private ProgressDialog progressDialog;
     private ProgressBar progressBarBitmap1;
@@ -65,7 +77,8 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     private ByteArrayOutputStream out2 = new ByteArrayOutputStream();
     private ByteArrayOutputStream out3 = new ByteArrayOutputStream();
 
-    private String TAG = "Lee";
+    final private String TAG = "Lee";
+    final private String TAGG = "mmpud";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -78,6 +91,18 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         setContentView(R.layout.activity_crowdsourcing);
         //set screen orientation
         setRequestedOrientation(0);
+        //find screen size
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        screenHeight = size.y;
+        screenWidth = size.x;
+        Log.d(TAGG, "phone screen: " + screenWidth + ", " + screenHeight);
+        //set up the upper and down cover
+        ivCoverUp = (ImageView)findViewById(R.id.iv_cover_up);
+        ivCoverDown = (ImageView)findViewById(R.id.iv_cover_down);
+        ivCoverUp.getLayoutParams().width = (screenWidth-screenHeight)/2;
+        ivCoverDown.getLayoutParams().width = (screenWidth-screenHeight)/2;
         //set up buttons
         btnShoot = (Button) findViewById(R.id.btn_shoot);
         btnBack = (Button) findViewById(R.id.btn_back);
@@ -93,8 +118,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         progressBarBitmap1 = (ProgressBar) findViewById(R.id.progressBar_bitmap1);
         progressBarBitmap2 = (ProgressBar) findViewById(R.id.progressBar_bitmap2);
         progressBarBitmap3 = (ProgressBar) findViewById(R.id.progressBar_bitmap3);
-
-        mLinearLayout = (LinearLayout) findViewById(R.id.LinearLayout1);
 
         svCameraPreview = (SurfaceView) findViewById(R.id.sv_camera_preview);
         surfaceHolder = svCameraPreview.getHolder();
@@ -136,7 +159,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         ivShoot1.setImageResource(R.drawable.shoot1);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF95B9C7"));
                         ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample1);
-                        mLinearLayout.setBackgroundColor(Color.parseColor("#FF95B9C7"));
                         ivTitle.setImageResource(R.drawable.title_step1);
                         compressNum--;
                         photoNum--;
@@ -145,7 +167,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         ivShoot2.setImageResource(R.drawable.shoot2);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
                         ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample2);
-                        mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                         ivTitle.setImageResource(R.drawable.title_step2);
                         btnShoot.setText("");
                         compressNum--;
@@ -155,7 +176,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                         ivShoot3.setImageResource(R.drawable.shoot3);
                         ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                         ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample3);
-                        mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                         ivTitle.setImageResource(R.drawable.title_step3);
                         photoNum--;
                         compressNum--;
@@ -284,7 +304,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //                    ivShoot1.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
                     ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample2);
-                    mLinearLayout.setBackgroundColor(Color.parseColor("#FF3090C7"));
                     ivTitle.setImageResource(R.drawable.title_step2);
                     photoNum++;
                     break;
@@ -296,7 +315,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //                    ivShoot2.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                     ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample3);
-                    mLinearLayout.setBackgroundColor(Color.parseColor("#FF2B60DE"));
                     ivTitle.setImageResource(R.drawable.title_step3);
                     photoNum++;
                     break;
@@ -308,7 +326,6 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //                    ivShoot3.setImageBitmap(bmp);
                     ivTitle.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     ivSamplePhoto.setBackgroundColor(Color.parseColor("#FF2DFF49"));
-                    mLinearLayout.setBackgroundColor(Color.parseColor("#FF2DFF49"));
                     ivTitle.setImageResource(R.drawable.title_finish);
                     photoNum++;
                     btnShoot.setBackgroundResource(android.R.drawable.btn_default);
@@ -411,15 +428,20 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             //in order to get square preview size
             List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
             Camera.Size previewSize = previewSizes.get(0);
-            int minArea = previewSize.width * previewSize.height;
             for (int i = 0; i < previewSizes.size(); i++)
             {
-                Log.d("mmpud", previewSizes.get(i).width + ", " + previewSizes.get(i).height);
-                if (previewSizes.get(i).width == previewSizes.get(i).height)
-                {
-                    previewSize = previewSizes.get(i);
-                }
+                Log.d(TAGG, previewSizes.get(i).width + ", " + previewSizes.get(i).height);
+
+                previewSize = previewSizes.get(i);
+                int largeEdge = (previewSize.width>previewSize.height)? previewSize.width:previewSize.height;
+                Log.d(TAGG, "largeEdge = "+ largeEdge);
+                if(largeEdge<=screenHeight)
+                	break;
             }
+            Log.d(TAGG, previewSize.width + ", " + previewSize.height);
+            android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(screenHeight*previewSize.width/previewSize.height, screenHeight, Gravity.CENTER);
+            svCameraPreview.setLayoutParams(params);
+            
             parameters.setPreviewSize(previewSize.width, previewSize.height);
             mCamera.setParameters(parameters);
             mCamera.setPreviewDisplay(surfaceHolder);

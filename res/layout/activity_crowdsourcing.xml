@@ -1,102 +1,136 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/LinearLayout1" 
+    android:id="@+id/FrameLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:weightSum="1"
     android:background="#FF95B9C7"
     tools:context=".CrowdsourcingActivity" >
-    <ImageView 
-        android:id="@+id/iv_title"
-        android:layout_width="50dp"
-        android:layout_height="match_parent"
-        android:background="#FF95B9C7"
-        android:src="@drawable/title_step1" />
-    <ImageView
-        android:id="@+id/iv_sample_photo"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:background="@drawable/photo_sample1"/>
 
     <SurfaceView
         android:id="@+id/sv_camera_preview"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:layout_gravity="center"
-        android:layout_margin="5dp" />
+        android:layout_gravity="center" />
+    
+    <ImageView 
+        android:id="@+id/iv_cover_up"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="left"
+        android:background="#FF000000" />
+    <ImageView 
+        android:id="@+id/iv_cover_down"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:background="#FF000000" />
+
+    <ImageView
+        android:id="@+id/iv_title"
+        android:layout_width="50dp"
+        android:layout_height="match_parent"
+        android:background="#FF95B9C7"
+        android:src="@drawable/title_step1" />
+    <Button
+        android:id="@+id/btn_back"
+        android:layout_width="50dp"
+        android:layout_height="100dp"
+        android:layout_gravity="left|bottom"
+        android:background="@drawable/btn_former_step" />
+
+    <ImageView
+        android:id="@+id/iv_sample_photo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="50dp"
+        android:background="@drawable/photo_sample1" />
+    
     <LinearLayout
         android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:layout_gravity="right" >
+
         <FrameLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
             <ProgressBar
-                    style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/progressBar_bitmap3" android:visibility="gone"
-                    android:layout_weight="1" android:layout_gravity="center"/>
+                android:id="@+id/progressBar_bitmap3"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/iv_shoot3"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/shoot3"
-                android:background="#FF2B60DE" android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:background="#FF2B60DE"
+                android:src="@drawable/shoot3" />
         </FrameLayout>
+
         <FrameLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
             <ProgressBar
-                    style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/progressBar_bitmap2" android:visibility="gone"
-                    android:layout_weight="1" android:layout_gravity="center"/>
+                android:id="@+id/progressBar_bitmap2"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/iv_shoot2"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/shoot2"
-                android:background="#FF3090C7" android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:background="#FF3090C7"
+                android:src="@drawable/shoot2" />
         </FrameLayout>
+
         <FrameLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
             <ProgressBar
-                    style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/progressBar_bitmap1" android:visibility="gone"
-                    android:layout_weight="1" android:layout_gravity="center"/>
+                android:id="@+id/progressBar_bitmap1"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/iv_shoot1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/shoot1"
-                android:background="#FF95B9C7" android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:background="#FF95B9C7"
+                android:src="@drawable/shoot1" />
         </FrameLayout>
     </LinearLayout>
-    <LinearLayout 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center">
-        <Button 
-        	android:id="@+id/btn_shoot"
-        	android:layout_width="50dp"
-        	android:layout_height="100dp"
-        	android:background="@drawable/btn_shoot"/>
-        <Button
-            android:id="@+id/btn_back"
-    	   android:layout_width="50dp"
-        	android:layout_height="100dp"
-    	    android:background="@drawable/btn_former_step"/>
-    </LinearLayout>
-    
-</LinearLayout>
+
+    <Button
+            android:id="@+id/btn_shoot"
+            android:layout_width="50dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="100dp"
+            android:background="@drawable/btn_shoot" />
+
+</FrameLayout>
