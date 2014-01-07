@@ -29,6 +29,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -136,6 +137,14 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         progressBarBitmap3 = (ProgressBar) findViewById(R.id.progressBar_bitmap3);
 
         svCameraPreview = (SurfaceView) findViewById(R.id.sv_camera_preview);
+        //tap the screen to focus
+        svCameraPreview.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				mCamera.autoFocus(null);
+				return false;
+			}
+        });
         surfaceHolder = svCameraPreview.getHolder();
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceHolder.addCallback(this);
@@ -143,7 +152,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         loadData();
 
     }
-
+    
     private void loadData()
     {
         Intent intent = getIntent();
@@ -158,7 +167,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         barcodeDao = daoSession.getBarcodeDao();
         historyDao = daoSession.getHistoryDao();
 
-        setTestDataBase();
+        //setTestDataBase();
     }
 
     private void setTestDataBase()
@@ -190,6 +199,46 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
         historyDao.insert(history);
         Log.d(TAG, "add history: " + history.getCreated_at());
 
+    }
+    
+    // override functions of the back button in the camera taking case
+    @Override
+    public void onBackPressed() {
+    	switch (photoNum)
+        {
+    		case 0:
+    			super.onBackPressed();
+    			break;
+        	case 1:
+        		ivShoot1.setImageResource(R.drawable.shoot1);
+        		ivTitle.setBackgroundColor(Color.parseColor("#FF95B9C7"));
+        		ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample1);
+            	ivTitle.setImageResource(R.drawable.title_step1);
+                compressNum--;
+                photoNum--;
+                break;
+            case 2:
+                ivShoot2.setImageResource(R.drawable.shoot2);
+                ivTitle.setBackgroundColor(Color.parseColor("#FF3090C7"));
+                ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample2);
+                ivTitle.setImageResource(R.drawable.title_step2);
+                btnShoot.setText("");
+                compressNum--;
+                photoNum--;
+                break;
+            case 3:
+                ivShoot3.setImageResource(R.drawable.shoot3);
+                ivTitle.setBackgroundColor(Color.parseColor("#FF2B60DE"));
+                ivSamplePhoto.setBackgroundResource(R.drawable.photo_sample3);
+                ivTitle.setImageResource(R.drawable.title_step3);
+                photoNum--;
+                compressNum--;
+                btnShoot.setBackgroundResource(R.drawable.btn_shoot);
+                btnShoot.setText("o");
+                break;
+            default:
+                break;
+        }
     }
 
     private OnClickListener myOnClickListener = new OnClickListener()
