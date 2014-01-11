@@ -172,33 +172,40 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
     private void setTestDataBase()
     {
-        Barcode barcode = new Barcode();
-        barcode.setBarcode("123456");
-        barcode.setName("drink");
-        barcode.setLoc_photo1("123");
-        barcode.setLoc_photo2("456");
-        barcode.setLoc_photo3("789");
-        barcode.setFinish(false);
-        barcode.setUpdate(false);
-        barcode.setUpdate(false);
-        barcodeDao.insert(barcode);
-        Log.d(TAG, "add new barcode: " + barcode.getBarcode());
+        List<Barcode> barcodeList = barcodeDao.queryBuilder().where(BarcodeDao.Properties.Barcode.eq("123456")).list();
+        if(barcodeList.size() <= 0)
+        {
+            Barcode barcode = new Barcode();
+            barcode.setBarcode("123456");
+            barcode.setName("drink");
+            barcode.setLoc_photo1("123");
+            barcode.setLoc_photo2("456");
+            barcode.setLoc_photo3("789");
+            barcode.setFinish(false);
+            barcode.setUpdate(false);
+            barcode.setUpdate(false);
+            barcodeDao.insert(barcode);
+            Log.d(TAG, "add new barcode: " + barcode.getBarcode());
 
-        // 讀取現在日期
-        Date currentDate = new Date();
+            // 讀取現在日期
+            Date currentDate = new Date();
 
-        // 設定 + one hour to upload
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentDate);
-        calendar.add(Calendar.HOUR, +1);
+            // 設定 + one hour to upload
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(currentDate);
+            calendar.add(Calendar.HOUR, +1);
 
-        History history = new History();
-        history.setBarcode(barcode);
-        history.setCreated_at(currentDate);
-        history.setUpdated_at(calendar.getTime());
-        historyDao.insert(history);
-        Log.d(TAG, "add history: " + history.getCreated_at());
-
+            History history = new History();
+            history.setBarcode(barcode);
+            history.setCreated_at(currentDate);
+            history.setUpdated_at(calendar.getTime());
+            historyDao.insert(history);
+            Log.d(TAG, "add history: " + history.getCreated_at());
+        }
+        else
+        {
+            Log.d(TAG, "exist barcode: " + barcodeList.get(0).getBarcode());
+        }
     }
     
     // override functions of the back button in the camera taking case

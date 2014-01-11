@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -20,8 +21,18 @@ import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
 import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import com.openeatsCS.app.model.BarcodeDao;
+import com.openeatsCS.app.model.DaoMaster;
+import com.openeatsCS.app.model.DaoSession;
+import com.openeatsCS.app.model.HistoryDao;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Created by Lee on 2014/1/1.
@@ -30,19 +41,32 @@ public class CrowdsourcingService extends Service
 {
     private static final String TAG = "CSService";
 
-    private static final String CS_SERVICE_ACTION = "OpenEats.CrowdSourcingApp";
+    private static final String CS_SERVICE_ACTION      = "OpenEats.CrowdSourcingApp";
     private static final String CS_SERVICE_CONTROLTYPE = "controlType";
 
     private static final String EXISTBARCODELIST = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/getBarcodes";
     private static final String ACCEPTUPLOAD     = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/acceptUpload/";
     private static final String UPLOADPHOTO      = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload";
 
+    // Restful Api
     private HttpClient   client;
     private HttpGet      getBarcodeList;
     private HttpGet      getAcceptUpload;
     private HttpPost     postPhoto;
     private HttpResponse response;
     private HttpEntity   resEntity;
+
+    private boolean checkGetBarcodeList;
+    private boolean checkGetAcceptUpload;
+    private boolean checkPostPhoto;
+
+    // green DAO
+    private DaoMaster.DevOpenHelper devOpenHelper;
+    private SQLiteDatabase          db;
+    private DaoMaster               daoMaster;
+    private DaoSession              daoSession;
+    private BarcodeDao              barcodeDao;
+    private HistoryDao              historyDao;
 
     private BroadcastReceiver broadcast = new BroadcastReceiver()
     {
@@ -60,15 +84,32 @@ public class CrowdsourcingService extends Service
         client = new DefaultHttpClient();
         getBarcodeList = new HttpGet(EXISTBARCODELIST);
         postPhoto = new HttpPost(UPLOADPHOTO);
+
         this.registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
         this.registerReceiver(broadcast, new IntentFilter("OpenEats.CrowdSourcingApp"));
+
+        devOpenHelper = new DaoMaster.DevOpenHelper(CrowdsourcingService.this, "openeatsCS-db", null);
+        db = devOpenHelper.getWritableDatabase();
+        daoMaster = new DaoMaster(db);
+        daoSession = daoMaster.newSession();
+        barcodeDao = daoSession.getBarcodeDao();
+        historyDao = daoSession.getHistoryDao();
+
+        checkGetBarcodeList = false;
+        checkGetAcceptUpload = false;
+        checkPostPhoto = false;
     }
 
     @Override
     public void onDestroy()
     {
         super.onDestroy();
+
         this.unregisterReceiver(broadcast);
+
+        daoSession.clear();
+        db.close();
+        devOpenHelper.close();
     }
 
     @Override
@@ -159,23 +200,41 @@ public class CrowdsourcingService extends Service
 
     private void getBarcodeList()
     {
-        new Thread(new Runnable()
+        if (!checkGetBarcodeList)
         {
-            @Override
-            public void run()
+            checkGetBarcodeList = true;
+            Log.d(TAG, "get barcode list.");
+            new Thread(new Runnable()
             {
-                try
+                @Override
+                public void run()
                 {
-                    getBarcodeList = new HttpGet(EXISTBARCODELIST);
-                    response = client.execute(getBarcodeList);
-                    resEntity = response.getEntity();
+                    try
+                    {
+
+                        getBarcodeList = new HttpGet(EXISTBARCODELIST);
+                        response = client.execute(getBarcodeList);
+                        resEntity = response.getEntity();
+                        String content = EntityUtils.toString(resEntity);
+
+                        Log.d(TAG, "get barcode list response " + content);
+
+                        JsonParser parser = new JsonParser();
+                        JsonArray contentJson = parser.parse(content).getAsJsonArray();
+                        Type listType = new TypeToken<List<String>>(){}.getType();
+                        List<String> barcodeList = new Gson().fromJson(contentJson, listType);
+
+                        Log.d(TAG, "json to barcode list size " + barcodeList.size());
+                        checkGetBarcodeList = false;
+                    }
+                    catch (Exception e)
+                    {
+                        checkGetBarcodeList = false;
+                        Log.d(TAG,"get barcode list error: "+ e.toString());
+                    }
                 }
-                catch (Exception e)
-                {
-                    Log.d(TAG,"get barcode list error: "+ e.toString());
-                }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     private void uploadPhotos()
@@ -213,6 +272,9 @@ public class CrowdsourcingService extends Service
                     getAcceptUpload = new HttpGet(ACCEPTUPLOAD + barcode);
                     response = client.execute(getAcceptUpload);
                     resEntity = response.getEntity();
+                    String content = resEntity.getContent().toString();
+
+
                 }
                 catch (Exception e)
                 {
