@@ -23,15 +23,15 @@ import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import com.openeatsCS.app.model.BarcodeDao;
-import com.openeatsCS.app.model.DaoMaster;
-import com.openeatsCS.app.model.DaoSession;
-import com.openeatsCS.app.model.HistoryDao;
+import com.openeatsCS.app.model.*;
+import de.greenrobot.dao.query.QueryBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -225,6 +225,25 @@ public class CrowdsourcingService extends Service
                         List<String> barcodeList = new Gson().fromJson(contentJson, listType);
 
                         Log.d(TAG, "json to barcode list size " + barcodeList.size());
+
+                        for(int i = 0; i < barcodeList.size(); i++)
+                        {
+                            Barcode newBarcode = new Barcode();
+                            newBarcode.setBarcode(barcodeList.get(i));
+                            newBarcode.setName("");
+                            newBarcode.setUpload(true);
+                            newBarcode.setUpdate(true);
+                            newBarcode.setFinish(true);            // product all done
+                            barcodeDao.insertOrReplace(newBarcode);
+
+                            Date currentDate = new Date();
+
+                            History history = new History();
+                            history.setBarcode(newBarcode);
+                            history.setUpdated_at(currentDate);
+                            historyDao.insert(history);
+
+                        }
                         checkGetBarcodeList = false;
                     }
                     catch (Exception e)
@@ -262,26 +281,68 @@ public class CrowdsourcingService extends Service
 
     private void acceptUpload(final String barcode)
     {
-        new Thread(new Runnable()
+        if (!checkGetAcceptUpload)
         {
-            @Override
-            public void run()
+            checkGetAcceptUpload = true;
+            new Thread(new Runnable()
             {
-                try
+                @Override
+                public void run()
                 {
-                    getAcceptUpload = new HttpGet(ACCEPTUPLOAD + barcode);
-                    response = client.execute(getAcceptUpload);
-                    resEntity = response.getEntity();
-                    String content = resEntity.getContent().toString();
+                    try
+                    {
+                        getAcceptUpload = new HttpGet(ACCEPTUPLOAD + barcode);
+                        response = client.execute(getAcceptUpload);
+                        resEntity = response.getEntity();
+                        String content = EntityUtils.toString(resEntity);
 
+                        JsonParser parser = new JsonParser();
+                        JsonObject contentJson = parser.parse(content).getAsJsonObject();
+                        boolean result = contentJson.get("UploadAllowed").getAsBoolean();
 
+                        QueryBuilder qb = barcodeDao.queryBuilder();
+                        qb.where(BarcodeDao.Properties.Barcode.eq(barcode));
+                        List barcodeList = qb.list();
+                        Barcode barcodetmp;
+                        if (barcodeList.size() > 0)
+                        {
+                            barcodetmp = (Barcode) barcodeList.get(0);
+                        }
+                        else
+                        {
+                            barcodetmp = new Barcode();
+                            barcodetmp.setBarcode(barcode);
+                        }
+
+                        barcodetmp.setFinish(!result);             // set UploadAllowed ? false:true
+                        barcodetmp.setUpdate(true);
+
+                        if(barcodeList.size() > 0)
+                        {
+                            barcodeDao.update(barcodetmp);
+                        }
+                        else
+                        {
+                            barcodeDao.insert(barcodetmp);
+                        }
+
+                        Date currentDate = new Date();
+
+                        History history = new History();
+                        history.setBarcode(barcodetmp);
+                        history.setUpdated_at(currentDate);
+                        historyDao.insert(history);
+
+                        checkGetAcceptUpload = false;
+                    }
+                    catch (Exception e)
+                    {
+                        checkGetAcceptUpload = false;
+                        Log.d(TAG, "accept Upload error: "+ e.toString());
+                    }
                 }
-                catch (Exception e)
-                {
-                    Log.d(TAG, "accept Upload error: "+ e.toString());
-                }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     public IBinder onBind(Intent intent)

@@ -183,7 +183,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             barcode.setLoc_photo3("789");
             barcode.setFinish(false);
             barcode.setUpdate(false);
-            barcode.setUpdate(false);
+            barcode.setUpload(false);
             barcodeDao.insert(barcode);
             Log.d(TAG, "add new barcode: " + barcode.getBarcode());
 
