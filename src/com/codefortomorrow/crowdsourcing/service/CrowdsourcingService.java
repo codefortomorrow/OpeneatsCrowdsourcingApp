@@ -233,13 +233,33 @@ public class CrowdsourcingService extends Service
 
                         for(int i = 0; i < barcodeList.size(); i++)
                         {
-                            Barcode newBarcode = new Barcode();
+                            QueryBuilder queryBuilder = barcodeDao.queryBuilder();
+                            queryBuilder.where(BarcodeDao.Properties.Barcode.eq(barcodeList.get(i)));
+                            List dbBarcodeList = queryBuilder.list();
+                            Barcode newBarcode;
+                            if (dbBarcodeList.size() > 0)           // check barcode exist or not
+                            {
+                                newBarcode = (Barcode) dbBarcodeList.get(0);
+                            }
+                            else
+                            {
+                                newBarcode = new Barcode();
+                            }
+
                             newBarcode.setBarcode(barcodeList.get(i));
                             newBarcode.setName("");
                             newBarcode.setUpload(true);
                             newBarcode.setUpdate(true);
                             newBarcode.setFinish(true);            // product all done
-                            barcodeDao.insertOrReplace(newBarcode);
+
+                            if (dbBarcodeList.size() > 0)
+                            {
+                                barcodeDao.update(newBarcode);
+                            }
+                            else
+                            {
+                                barcodeDao.insert(newBarcode);
+                            }
 
                             Date currentDate = new Date();
 
@@ -311,7 +331,7 @@ public class CrowdsourcingService extends Service
                         qb.where(BarcodeDao.Properties.Barcode.eq(barcode));
                         List barcodeList = qb.list();
                         Barcode barcodetmp;
-                        if (barcodeList.size() > 0)
+                        if (barcodeList.size() > 0)                 // check barcode exist or not
                         {
                             barcodetmp = (Barcode) barcodeList.get(0);
                         }
@@ -338,12 +358,16 @@ public class CrowdsourcingService extends Service
                         History history = new History();
                         history.setBarcode(barcodetmp);
                         history.setTime(currentDate);
-                        history.setLog(String.format(LOG_UPLOADALLOWED, barcode, !result));
+                        history.setLog(String.format(LOG_UPLOADALLOWED, barcode, result));
                         historyDao.insert(history);
 
                         checkGetAcceptUpload = false;
-
-                        Log.d(TAG, String.format(LOG_UPLOADALLOWED, barcode, !result) + " Time: " + history.getTime());
+                        List historyList = barcodetmp.getHistoryList();
+                        for (int i = 0; i < historyList.size(); i++)
+                        {
+                            History historytmp = (History) historyList.get(i);
+                            Log.d(TAG, historytmp.getLog() + " Time: " + historytmp.getTime());
+                        }
                     }
                     catch (Exception e)
                     {

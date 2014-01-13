@@ -4,9 +4,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.*;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
@@ -14,11 +11,6 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import ch.boye.httpclientandroidlib.HttpEntity;
-import ch.boye.httpclientandroidlib.HttpResponse;
-import ch.boye.httpclientandroidlib.client.HttpClient;
-import ch.boye.httpclientandroidlib.client.methods.HttpGet;
-import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import com.google.zxing.client.android.CaptureActivity;
 import com.openeatsCS.app.model.*;
 import de.greenrobot.dao.query.QueryBuilder;
@@ -45,6 +37,9 @@ public class ProductActivity extends Activity
 
     private static final String DB_OPENEATS       = "openeatsCS-db";
 
+    private static final String CS_INTENT_OPENEATS_CROWDSOURCING_APP = "OpenEats.CrowdSourcingApp";
+    private static final String CS_SERVICE_CONTROLTYPE = "controlType";
+
     private static final String TAG       = "Lee";
     private static final String PREF_NAME = "OPENEATS";
     private static final String PREF_KEY  = "UUID";
@@ -66,7 +61,6 @@ public class ProductActivity extends Activity
     {
         // TODO Auto-generated method stub
         super.onPause();
-//        this.unregisterReceiver(broadcast);
     }
 
     @Override
@@ -74,7 +68,6 @@ public class ProductActivity extends Activity
     {
         // TODO Auto-generated method stub
         super.onResume();
-//        this.registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
     }
 
     @Override
@@ -128,9 +121,9 @@ public class ProductActivity extends Activity
         daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
         barcodeDao = daoSession.getBarcodeDao();
+        historyDao = daoSession.getHistoryDao();
 
         QueryBuilder qb = barcodeDao.queryBuilder();
-        qb.where(BarcodeDao.Properties.Barcode.eq(productID));
         List barcodeList = qb.list();
 
         productUploadAllowed = true;
@@ -139,6 +132,12 @@ public class ProductActivity extends Activity
             Barcode barcodetmp = (Barcode) barcodeList.get(0);
             productUploadAllowed = !barcodetmp.getFinish();
             Log.d(TAG, "barcode: " + barcodetmp.getBarcode() + " UploadAllowed: " + productUploadAllowed);
+            List historyList = barcodetmp.getHistoryList();
+            for (int i = 0; i < historyList.size(); i++)
+            {
+                History historytmp = (History) historyList.get(i);
+                Log.d(TAG, historytmp.getTime() + historytmp.getLog());
+            }
         }
 
         if (!productUploadAllowed)
@@ -150,37 +149,15 @@ public class ProductActivity extends Activity
         {
             cameraButton.setText(R.string.button_product_start_camera);
         }
+
+        Intent intentBroadcast = new Intent();
+        Bundle CSbundle = new Bundle();
+        CSbundle.putChar(CS_SERVICE_CONTROLTYPE, 'A');
+        CSbundle.putString("barcode", productID);
+        intentBroadcast.putExtras(CSbundle);
+        intentBroadcast.setAction(CS_INTENT_OPENEATS_CROWDSOURCING_APP);
+        sendBroadcast(intentBroadcast);
 	}
-	
-//	private BroadcastReceiver broadcast =  new BroadcastReceiver()
-//	{
-//		@Override
-//		public void onReceive(Context context, Intent intent)
-//		{
-//			// TODO Auto-generated method stub
-//			// Detect the network
-//			ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//			NetworkInfo networkInfo = connect.getActiveNetworkInfo();
-//			if(networkInfo != null)
-//			{
-//				if(networkInfo.isAvailable())
-//				{
-//					cameraButton.setClickable(true);
-//					cameraButton.setText(R.string.button_product_start_camera);
-//				}
-//				else
-//				{
-//					cameraButton.setClickable(false);
-//					cameraButton.setText(R.string.button_product_no_network);
-//				}
-//			}
-//			else
-//			{
-//				cameraButton.setClickable(false);
-//				cameraButton.setText(R.string.button_product_no_network);
-//			}
-//		}
-//	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
