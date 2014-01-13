@@ -21,6 +21,7 @@ import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
 import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
+import com.codefortomorrow.crowdsourcing.R;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -41,14 +42,17 @@ public class CrowdsourcingService extends Service
 {
     private static final String TAG = "CSService";
 
-    private static final String CS_SERVICE_ACTION      = "OpenEats.CrowdSourcingApp";
-    private static final String CS_SERVICE_CONTROLTYPE = "controlType";
+    private static final String CS_INTENT_CONNECTIVITY_CHANGE        = "android.net.conn.CONNECTIVITY_CHANGE";
+    private static final String CS_INTENT_OPENEATS_CROWDSOURCING_APP = "OpenEats.CrowdSourcingApp";
+    private static final String CS_SERVICE_CONTROLTYPE               = "controlType";
 
     private static final String EXISTBARCODELIST = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/getBarcodes";
     private static final String ACCEPTUPLOAD     = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/acceptUpload/";
     private static final String UPLOADPHOTO      = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload";
 
+    private static final String DB_OPENEATS       = "openeatsCS-db";
     private static final String LOG_UPLOADALLOWED = "Update Barcode: %s, UploadAllowed: %b";
+
     // Restful Api
     private HttpClient   client;
     private HttpGet      getBarcodeList;
@@ -86,10 +90,10 @@ public class CrowdsourcingService extends Service
         getBarcodeList = new HttpGet(EXISTBARCODELIST);
         postPhoto = new HttpPost(UPLOADPHOTO);
 
-        this.registerReceiver(broadcast, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
-        this.registerReceiver(broadcast, new IntentFilter("OpenEats.CrowdSourcingApp"));
+        this.registerReceiver(broadcast, new IntentFilter(CS_INTENT_CONNECTIVITY_CHANGE));
+        this.registerReceiver(broadcast, new IntentFilter(CS_INTENT_OPENEATS_CROWDSOURCING_APP));
 
-        devOpenHelper = new DaoMaster.DevOpenHelper(CrowdsourcingService.this, "openeatsCS-db", null);
+        devOpenHelper = new DaoMaster.DevOpenHelper(CrowdsourcingService.this, DB_OPENEATS, null);
         db = devOpenHelper.getWritableDatabase();
         daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
@@ -159,7 +163,7 @@ public class CrowdsourcingService extends Service
         }
         Log.d(TAG, "Detect Network" + networkIsAvailable);
 
-        if (action.equals(CS_SERVICE_ACTION))
+        if (action.equals(CS_INTENT_OPENEATS_CROWDSOURCING_APP))
         {
             char controlType = bundle.getChar(CS_SERVICE_CONTROLTYPE);
             switch (controlType)
@@ -193,7 +197,7 @@ public class CrowdsourcingService extends Service
                     break;
             }
         }
-        else if (action.equals("android.net.conn.CONNECTIVITY_CHANGE"))
+        else if (action.equals(CS_INTENT_CONNECTIVITY_CHANGE))
         {
 
         }
@@ -245,6 +249,7 @@ public class CrowdsourcingService extends Service
                             history.setLog(String.format(LOG_UPLOADALLOWED, barcodeList.get(i), false));
                             historyDao.insert(history);
 
+                            Log.d(TAG, String.format(LOG_UPLOADALLOWED, barcodeList.get(i), false) + " Time: " + history.getTime());
                         }
                         checkGetBarcodeList = false;
                     }
@@ -337,6 +342,8 @@ public class CrowdsourcingService extends Service
                         historyDao.insert(history);
 
                         checkGetAcceptUpload = false;
+
+                        Log.d(TAG, String.format(LOG_UPLOADALLOWED, barcode, !result) + " Time: " + history.getTime());
                     }
                     catch (Exception e)
                     {
