@@ -10,9 +10,8 @@ import de.greenrobot.dao.DaoException;
 public class History {
 
     private Long id;
-    private java.util.Date created_at;
-    private java.util.Date upload_at;
-    private java.util.Date updated_at;
+    private java.util.Date time;
+    private String log;
     private long barcode_id;
 
     /** Used to resolve relations */
@@ -32,11 +31,10 @@ public class History {
         this.id = id;
     }
 
-    public History(Long id, java.util.Date created_at, java.util.Date upload_at, java.util.Date updated_at, long barcode_id) {
+    public History(Long id, java.util.Date time, String log, long barcode_id) {
         this.id = id;
-        this.created_at = created_at;
-        this.upload_at = upload_at;
-        this.updated_at = updated_at;
+        this.time = time;
+        this.log = log;
         this.barcode_id = barcode_id;
     }
 
@@ -54,28 +52,20 @@ public class History {
         this.id = id;
     }
 
-    public java.util.Date getCreated_at() {
-        return created_at;
+    public java.util.Date getTime() {
+        return time;
     }
 
-    public void setCreated_at(java.util.Date created_at) {
-        this.created_at = created_at;
+    public void setTime(java.util.Date time) {
+        this.time = time;
     }
 
-    public java.util.Date getUpload_at() {
-        return upload_at;
+    public String getLog() {
+        return log;
     }
 
-    public void setUpload_at(java.util.Date upload_at) {
-        this.upload_at = upload_at;
-    }
-
-    public java.util.Date getUpdated_at() {
-        return updated_at;
-    }
-
-    public void setUpdated_at(java.util.Date updated_at) {
-        this.updated_at = updated_at;
+    public void setLog(String log) {
+        this.log = log;
     }
 
     public long getBarcode_id() {

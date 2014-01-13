@@ -48,6 +48,7 @@ public class CrowdsourcingService extends Service
     private static final String ACCEPTUPLOAD     = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/acceptUpload/";
     private static final String UPLOADPHOTO      = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload";
 
+    private static final String LOG_UPLOADALLOWED = "Update Barcode: %s, UploadAllowed: %b";
     // Restful Api
     private HttpClient   client;
     private HttpGet      getBarcodeList;
@@ -240,7 +241,8 @@ public class CrowdsourcingService extends Service
 
                             History history = new History();
                             history.setBarcode(newBarcode);
-                            history.setUpdated_at(currentDate);
+                            history.setTime(currentDate);
+                            history.setLog(String.format(LOG_UPLOADALLOWED, barcodeList.get(i), false));
                             historyDao.insert(history);
 
                         }
@@ -330,7 +332,8 @@ public class CrowdsourcingService extends Service
 
                         History history = new History();
                         history.setBarcode(barcodetmp);
-                        history.setUpdated_at(currentDate);
+                        history.setTime(currentDate);
+                        history.setLog(String.format(LOG_UPLOADALLOWED, barcode, !result));
                         historyDao.insert(history);
 
                         checkGetAcceptUpload = false;

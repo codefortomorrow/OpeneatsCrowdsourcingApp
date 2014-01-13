@@ -29,10 +29,9 @@ public class HistoryDao extends AbstractDao<History, Long> {
     */
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property Created_at = new Property(1, java.util.Date.class, "created_at", false, "CREATED_AT");
-        public final static Property Upload_at = new Property(2, java.util.Date.class, "upload_at", false, "UPLOAD_AT");
-        public final static Property Updated_at = new Property(3, java.util.Date.class, "updated_at", false, "UPDATED_AT");
-        public final static Property Barcode_id = new Property(4, long.class, "barcode_id", false, "BARCODE_ID");
+        public final static Property Time = new Property(1, java.util.Date.class, "time", false, "TIME");
+        public final static Property Log = new Property(2, String.class, "log", false, "LOG");
+        public final static Property Barcode_id = new Property(3, long.class, "barcode_id", false, "BARCODE_ID");
     };
 
     private DaoSession daoSession;
@@ -53,10 +52,9 @@ public class HistoryDao extends AbstractDao<History, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'HISTORY' (" + //
                 "'_id' INTEGER PRIMARY KEY ," + // 0: id
-                "'CREATED_AT' INTEGER," + // 1: created_at
-                "'UPLOAD_AT' INTEGER," + // 2: upload_at
-                "'UPDATED_AT' INTEGER," + // 3: updated_at
-                "'BARCODE_ID' INTEGER NOT NULL );"); // 4: barcode_id
+                "'TIME' INTEGER," + // 1: time
+                "'LOG' TEXT," + // 2: log
+                "'BARCODE_ID' INTEGER NOT NULL );"); // 3: barcode_id
     }
 
     /** Drops the underlying database table. */
@@ -75,21 +73,16 @@ public class HistoryDao extends AbstractDao<History, Long> {
             stmt.bindLong(1, id);
         }
  
-        java.util.Date created_at = entity.getCreated_at();
-        if (created_at != null) {
-            stmt.bindLong(2, created_at.getTime());
+        java.util.Date time = entity.getTime();
+        if (time != null) {
+            stmt.bindLong(2, time.getTime());
         }
  
-        java.util.Date upload_at = entity.getUpload_at();
-        if (upload_at != null) {
-            stmt.bindLong(3, upload_at.getTime());
+        String log = entity.getLog();
+        if (log != null) {
+            stmt.bindString(3, log);
         }
- 
-        java.util.Date updated_at = entity.getUpdated_at();
-        if (updated_at != null) {
-            stmt.bindLong(4, updated_at.getTime());
-        }
-        stmt.bindLong(5, entity.getBarcode_id());
+        stmt.bindLong(4, entity.getBarcode_id());
     }
 
     @Override
@@ -109,10 +102,9 @@ public class HistoryDao extends AbstractDao<History, Long> {
     public History readEntity(Cursor cursor, int offset) {
         History entity = new History( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.isNull(offset + 1) ? null : new java.util.Date(cursor.getLong(offset + 1)), // created_at
-            cursor.isNull(offset + 2) ? null : new java.util.Date(cursor.getLong(offset + 2)), // upload_at
-            cursor.isNull(offset + 3) ? null : new java.util.Date(cursor.getLong(offset + 3)), // updated_at
-            cursor.getLong(offset + 4) // barcode_id
+            cursor.isNull(offset + 1) ? null : new java.util.Date(cursor.getLong(offset + 1)), // time
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // log
+            cursor.getLong(offset + 3) // barcode_id
         );
         return entity;
     }
@@ -121,10 +113,9 @@ public class HistoryDao extends AbstractDao<History, Long> {
     @Override
     public void readEntity(Cursor cursor, History entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
-        entity.setCreated_at(cursor.isNull(offset + 1) ? null : new java.util.Date(cursor.getLong(offset + 1)));
-        entity.setUpload_at(cursor.isNull(offset + 2) ? null : new java.util.Date(cursor.getLong(offset + 2)));
-        entity.setUpdated_at(cursor.isNull(offset + 3) ? null : new java.util.Date(cursor.getLong(offset + 3)));
-        entity.setBarcode_id(cursor.getLong(offset + 4));
+        entity.setTime(cursor.isNull(offset + 1) ? null : new java.util.Date(cursor.getLong(offset + 1)));
+        entity.setLog(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setBarcode_id(cursor.getLong(offset + 3));
      }
     
     /** @inheritdoc */

@@ -103,6 +103,8 @@ public class ProductActivity extends Activity
         }
         Log.d(TAG, "uuid: " + contentUUID);
 
+
+
 //        ConnectivityManager connect = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 //        NetworkInfo networkInfo = connect.getActiveNetworkInfo();
 //        boolean checkNetwork = false;
