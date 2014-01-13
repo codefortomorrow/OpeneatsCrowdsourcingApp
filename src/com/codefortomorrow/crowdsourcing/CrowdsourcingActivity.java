@@ -96,6 +96,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
     final private String TAG  = "Lee";
     final private String TAGG = "mmpud";
+    final private String LOG_CREATE = "Create Barcode: %s";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -197,10 +198,10 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
             History history = new History();
             history.setBarcode(barcode);
-            history.setCreated_at(currentDate);
-            history.setUpdated_at(calendar.getTime());
+            history.setTime(currentDate);
+            history.setLog(String.format(LOG_CREATE, barcode));
             historyDao.insert(history);
-            Log.d(TAG, "add history: " + history.getCreated_at());
+            Log.d(TAG, "add history: " + history.getTime());
         }
         else
         {
