@@ -1,10 +1,6 @@
 package com.codefortomorrow.crowdsourcing;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,6 +20,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -94,9 +91,14 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     //'T'hh:mm:ss.SSS'Z'"); // example: 2013-11-11T12:21:48.033Z
 //    final private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 
-    final private String TAG  = "Lee";
-    final private String TAGG = "mmpud";
+    // check SD
+    File sdCardDirectory = Environment.getExternalStorageDirectory();
+
+    final private String TAG        = "Lee";
+    final private String TAGG       = "mmpud";
     final private String LOG_CREATE = "Create Barcode: %s";
+
+    final private String SD_STORAGE = "/openEats";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -139,12 +141,14 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
         svCameraPreview = (SurfaceView) findViewById(R.id.sv_camera_preview);
         //tap the screen to focus
-        svCameraPreview.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				mCamera.autoFocus(null);
-				return false;
-			}
+        svCameraPreview.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                mCamera.autoFocus(null);
+                return false;
+            }
         });
         surfaceHolder = svCameraPreview.getHolder();
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -262,7 +266,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
                 }
                 else
                 {
-                    updatingPics();
+                    storePics();
+//                    updatingPics();
+
                 }
             }
             else if (v.getId() == R.id.btn_back)
@@ -591,6 +597,53 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             }
         }
     };
+
+    private void storePics()
+    {
+        File photoPath = new File(sdCardDirectory.getAbsolutePath() + SD_STORAGE);
+        if(!photoPath.exists())
+        {
+            photoPath.mkdirs();
+        }
+
+        try
+        {
+            File fileout1 = new File(sdCardDirectory.getAbsolutePath() + SD_STORAGE, productID + "_1.jpg");
+            FileOutputStream out1tmp = new FileOutputStream(fileout1);
+            out1.writeTo(out1tmp);
+            out1.flush();
+            out1.close();
+
+            out1tmp.flush();
+            out1tmp.close();
+
+            File fileout2 = new File(sdCardDirectory.getAbsolutePath() + SD_STORAGE, productID + "_2.jpg");
+            FileOutputStream out2tmp = new FileOutputStream(fileout2);
+            out2.writeTo(out2tmp);
+            out2.flush();
+            out2.close();
+
+            out2tmp.flush();
+            out2tmp.close();
+
+            File fileout3 = new File(sdCardDirectory.getAbsolutePath() + SD_STORAGE, productID + "_3.jpg");
+            FileOutputStream out3tmp = new FileOutputStream(fileout3);
+            out3.writeTo(out3tmp);
+            out3.flush();
+            out3.close();
+
+            out3tmp.flush();
+            out3tmp.close();
+
+            startFinishActivity("Success");
+
+        }
+        catch (Exception e)
+        {
+            Log.d(TAG, "Store pics" + e.toString());
+            startFinishActivity(e.toString());
+        }
+    }
 
     private void updatingPics()
     {
