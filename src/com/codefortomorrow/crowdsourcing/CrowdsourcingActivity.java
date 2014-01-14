@@ -601,8 +601,8 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 //        }
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Updating");
-        progressDialog.setMessage("Updating the pictures");
+        progressDialog.setTitle("Uploading");
+        progressDialog.setMessage("Uploading the pictures");
         progressDialog.show();
 
         //設置執行緒  執行照片上傳
@@ -611,7 +611,7 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
             @Override
             public void run()
             {
-                Log.d(TAG, "Start updating");
+                Log.d(TAG, "Start uploading");
                 HttpClient client = new DefaultHttpClient();
                 HttpPost updatePhoto = new HttpPost("http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload");
 //                HttpPost updatePhoto = new HttpPost("http://192.168.155.239/api/1.0/upload");

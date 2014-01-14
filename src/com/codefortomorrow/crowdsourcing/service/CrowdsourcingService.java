@@ -244,10 +244,10 @@ public class CrowdsourcingService extends Service
                             else
                             {
                                 newBarcode = new Barcode();
+                                newBarcode.setBarcode(barcodeList.get(i));
                             }
 
-                            newBarcode.setBarcode(barcodeList.get(i));
-                            newBarcode.setName("");
+//                            newBarcode.setName("");
                             newBarcode.setUpload(true);
                             newBarcode.setUpdate(true);
                             newBarcode.setFinish(true);            // product all done

@@ -52,7 +52,7 @@ public class BarcodeDao extends AbstractDao<Barcode, Long> {
         db.execSQL("CREATE TABLE " + constraint + "'BARCODE' (" + //
                 "'_id' INTEGER PRIMARY KEY ," + // 0: id
                 "'BARCODE' TEXT UNIQUE ," + // 1: barcode
-                "'NAME' TEXT UNIQUE ," + // 2: name
+                "'NAME' TEXT," + // 2: name
                 "'LOC_PHOTO1' TEXT," + // 3: loc_photo1
                 "'LOC_PHOTO2' TEXT," + // 4: loc_photo2
                 "'LOC_PHOTO3' TEXT," + // 5: loc_photo3

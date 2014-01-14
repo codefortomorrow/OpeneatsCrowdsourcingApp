@@ -124,6 +124,7 @@ public class ProductActivity extends Activity
         historyDao = daoSession.getHistoryDao();
 
         QueryBuilder qb = barcodeDao.queryBuilder();
+        qb.where(BarcodeDao.Properties.Barcode.eq(productID));
         List barcodeList = qb.list();
 
         productUploadAllowed = true;
