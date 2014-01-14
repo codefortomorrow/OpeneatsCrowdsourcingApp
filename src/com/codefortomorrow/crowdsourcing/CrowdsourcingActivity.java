@@ -98,6 +98,9 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
     final private String TAGG       = "mmpud";
     final private String LOG_CREATE = "Create Barcode: %s";
 
+    private static final String CS_INTENT_OPENEATS_CROWDSOURCING_APP = "OpenEats.CrowdSourcingApp";
+    private static final String CS_SERVICE_CONTROLTYPE = "controlType";
+
     final private String SD_STORAGE = "/openEats";
 
     @Override
@@ -634,6 +637,14 @@ public class CrowdsourcingActivity extends Activity implements SurfaceHolder.Cal
 
             out3tmp.flush();
             out3tmp.close();
+
+            Intent intentBroadcast = new Intent();
+            Bundle CSbundle = new Bundle();
+            CSbundle.putChar(CS_SERVICE_CONTROLTYPE, 'S');
+            CSbundle.putString("barcode", productID);
+            intentBroadcast.putExtras(CSbundle);
+            intentBroadcast.setAction(CS_INTENT_OPENEATS_CROWDSOURCING_APP);
+            sendBroadcast(intentBroadcast);
 
             startFinishActivity("Success");
 

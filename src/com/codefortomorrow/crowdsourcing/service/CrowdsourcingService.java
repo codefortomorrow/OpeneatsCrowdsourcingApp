@@ -1,14 +1,14 @@
 package com.codefortomorrow.crowdsourcing.service;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import ch.boye.httpclientandroidlib.HttpEntity;
@@ -19,6 +19,8 @@ import ch.boye.httpclientandroidlib.client.methods.HttpGet;
 import ch.boye.httpclientandroidlib.client.methods.HttpPost;
 import ch.boye.httpclientandroidlib.entity.mime.HttpMultipartMode;
 import ch.boye.httpclientandroidlib.entity.mime.MultipartEntity;
+import ch.boye.httpclientandroidlib.entity.mime.content.ByteArrayBody;
+import ch.boye.httpclientandroidlib.entity.mime.content.StringBody;
 import ch.boye.httpclientandroidlib.impl.client.DefaultHttpClient;
 import ch.boye.httpclientandroidlib.util.EntityUtils;
 import com.codefortomorrow.crowdsourcing.R;
@@ -30,10 +32,14 @@ import com.google.gson.reflect.TypeToken;
 import com.openeatsCS.app.model.*;
 import de.greenrobot.dao.query.QueryBuilder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Lee on 2014/1/1.
@@ -50,20 +56,32 @@ public class CrowdsourcingService extends Service
     private static final String ACCEPTUPLOAD     = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/acceptUpload/";
     private static final String UPLOADPHOTO      = "http://openeatscs.yuchuan1.cloudbees.net/api/1.0/upload";
 
-    private static final String DB_OPENEATS       = "openeatsCS-db";
-    private static final String LOG_UPLOADALLOWED = "Update Barcode: %s, UploadAllowed: %b";
+    private static final String DB_OPENEATS         = "openeatsCS-db";
+    private static final String LOG_UPLOADALLOWED   = "Update Barcode: %s, UploadAllowed: %b";
+    private static final String LOG_UPLOADPHOTO     = "Upload Barcode: %s, Upload Photo: %s";
+    private static final String LOG_UPLOADPHOTODONE = "Upload Barcode: %s, Upload Photo %s";
+
+    private static final String SD_STORAGE = "/openEats";
+
+    private static final String PREF_NAME = "OPENEATS";
+    private static final String PREF_KEY  = "UUID";
 
     // Restful Api
     private HttpClient   client;
+
     private HttpGet      getBarcodeList;
     private HttpGet      getAcceptUpload;
     private HttpPost     postPhoto;
     private HttpResponse response;
     private HttpEntity   resEntity;
-
     private boolean checkGetBarcodeList;
+
     private boolean checkGetAcceptUpload;
     private boolean checkPostPhoto;
+
+    private List<String> photoUploadList;
+    private String uploadBarcode;
+    private String contentUUID;
 
     // green DAO
     private DaoMaster.DevOpenHelper devOpenHelper;
@@ -72,6 +90,9 @@ public class CrowdsourcingService extends Service
     private DaoSession              daoSession;
     private BarcodeDao              barcodeDao;
     private HistoryDao              historyDao;
+
+    // check SD
+    File sdCardDirectory = Environment.getExternalStorageDirectory();
 
     private BroadcastReceiver broadcast = new BroadcastReceiver()
     {
@@ -89,6 +110,7 @@ public class CrowdsourcingService extends Service
         client = new DefaultHttpClient();
         getBarcodeList = new HttpGet(EXISTBARCODELIST);
         postPhoto = new HttpPost(UPLOADPHOTO);
+        photoUploadList = new ArrayList<String>();
 
         this.registerReceiver(broadcast, new IntentFilter(CS_INTENT_CONNECTIVITY_CHANGE));
         this.registerReceiver(broadcast, new IntentFilter(CS_INTENT_OPENEATS_CROWDSOURCING_APP));
@@ -103,6 +125,17 @@ public class CrowdsourcingService extends Service
         checkGetBarcodeList = false;
         checkGetAcceptUpload = false;
         checkPostPhoto = false;
+
+        // load preferences
+        SharedPreferences sp = getSharedPreferences(PREF_NAME, Context.MODE_WORLD_WRITEABLE);
+        contentUUID = sp.getString(PREF_KEY, "");
+        if(contentUUID.equals(""))
+        {
+            contentUUID = UUID.randomUUID().toString();
+            sp.edit().putString(PREF_KEY, contentUUID).commit();
+        }
+        Log.d(TAG, "uuid: " + contentUUID);
+
     }
 
     @Override
@@ -134,16 +167,39 @@ public class CrowdsourcingService extends Service
             HttpEntity resEntity = httpResponse.getEntity();
             String response = EntityUtils.toString(resEntity);
 
+            QueryBuilder queryBuilder = barcodeDao.queryBuilder();
+            queryBuilder.where(BarcodeDao.Properties.Barcode.eq(uploadBarcode));
+            Barcode barcodetmp = (Barcode) queryBuilder.list().get(0);
+
+            Date currentDate = new Date();
+
+            History history = new History();
+            history.setBarcode(barcodetmp);
+            history.setTime(currentDate);
+
             if (response.contains("Success"))
             {
+                barcodetmp.setUpload(true);
+                history.setLog(String.format(LOG_UPLOADPHOTODONE, barcodetmp, "Success"));
+
+                Log.d(TAG, "Success");
+                photoUploadList.remove(photoUploadList.indexOf(uploadBarcode));
+                deletePhoto(uploadBarcode);
 
             }
             else
             {
+                photoUploadList.remove(photoUploadList.indexOf(uploadBarcode));
+                photoUploadList.add(uploadBarcode);
                 Log.d(TAG, "Error");
-
+                barcodetmp.setUpload(false);
+                history.setLog(String.format(LOG_UPLOADPHOTODONE, barcodetmp, "Fail"));
             }
+            barcodeDao.update(barcodetmp);
+            historyDao.insert(history);
+
             Log.d(TAG, response);
+
             return null;
         }
     }
@@ -190,7 +246,11 @@ public class CrowdsourcingService extends Service
                     }
                     break;
                 case 'S':
-
+                    if (networkIsAvailable)
+                    {
+                        photoUploadList.add(bundle.getString("barcode"));
+                        getStoragePhotos();
+                    }
                     break;
                 default:
 
@@ -199,7 +259,11 @@ public class CrowdsourcingService extends Service
         }
         else if (action.equals(CS_INTENT_CONNECTIVITY_CHANGE))
         {
-
+            Log.d(TAG, "Network connect. photo size:" + photoUploadList.size());
+            if (photoUploadList.size() > 0)
+            {
+                getStoragePhotos();
+            }
         }
     }
 
@@ -285,25 +349,111 @@ public class CrowdsourcingService extends Service
 
     private void uploadPhotos()
     {
-        new Thread(new Runnable()
+        if (!checkPostPhoto)
         {
-            @Override
-            public void run()
+            checkPostPhoto = true;
+            Log.d(TAG, "Uploading photo.");
+            new Thread(new Runnable()
             {
-                try
+                @Override
+                public void run()
                 {
-                    postPhoto = new HttpPost(UPLOADPHOTO);
-                    MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+                    try
+                    {
+                        uploadBarcode = photoUploadList.get(0);
+
+                        getAcceptUpload = new HttpGet(ACCEPTUPLOAD + uploadBarcode);
+                        response = client.execute(getAcceptUpload);
+                        resEntity = response.getEntity();
+                        String content = EntityUtils.toString(resEntity);
+
+                        JsonParser parser = new JsonParser();
+                        JsonObject contentJson = parser.parse(content).getAsJsonObject();
+                        boolean result = contentJson.get("UploadAllowed").getAsBoolean();
+
+                        Log.d(TAG, "Uploding Check database. " + uploadBarcode);
+
+                        QueryBuilder queryBuilder = barcodeDao.queryBuilder();
+                        queryBuilder.where(BarcodeDao.Properties.Barcode.eq(uploadBarcode));
+                        List barcodeList = queryBuilder.list();
+
+                        Barcode barcodetmp;
+
+                        if (barcodeList.size() > 0)
+                        {
+                            barcodetmp = (Barcode) barcodeList.get(0);
+                        }
+                        else
+                        {
+                            barcodetmp = new Barcode();
+                        }
+                        barcodetmp.setFinish(!result);
+                        barcodeDao.update(barcodetmp);
+
+                        Log.d(TAG, "Store History");
+                        Date currentDate = new Date();
+
+                        History history = new History();
+                        history.setBarcode(barcodetmp);
+                        history.setTime(currentDate);
+                        history.setLog(String.format(LOG_UPLOADALLOWED, barcodetmp, result));
+                        historyDao.insert(history);
+
+                        if(result)
+                        {
+                            ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+                            Bitmap bitmap1 = BitmapFactory.decodeFile(String.format("%s%s/%s_1.jpg", sdCardDirectory.getAbsolutePath(), SD_STORAGE, uploadBarcode));
+                            bitmap1.compress(Bitmap.CompressFormat.JPEG, 100, out1);
+                            bitmap1.recycle();
+
+                            ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+                            Bitmap bitmap2 = BitmapFactory.decodeFile(String.format("%s%s/%s_2.jpg", sdCardDirectory.getAbsolutePath(), SD_STORAGE, uploadBarcode));
+                            bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, out2);
+                            bitmap2.recycle();
+
+                            ByteArrayOutputStream out3 = new ByteArrayOutputStream();
+                            Bitmap bitmap3 = BitmapFactory.decodeFile(String.format("%s%s/%s_3.jpg", sdCardDirectory.getAbsolutePath(), SD_STORAGE, uploadBarcode));
+                            bitmap3.compress(Bitmap.CompressFormat.JPEG, 100, out3);
+                            bitmap3.recycle();
+
+                            Log.d(TAG, "Connecting server. Uploding " + uploadBarcode);
+                            postPhoto = new HttpPost(UPLOADPHOTO);
+                            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+                            entity.addPart("app_user_id", new StringBody(contentUUID));
+                            entity.addPart("barcode", new StringBody(uploadBarcode));
+                            entity.addPart("pic0", new ByteArrayBody(out1.toByteArray(), "file", "pic0.jpg"));
+                            entity.addPart("pic1", new ByteArrayBody(out2.toByteArray(), "file", "pic1.jpg"));
+                            entity.addPart("pic2", new ByteArrayBody(out3.toByteArray(), "file", "pic2.jpg"));
+                            postPhoto.setEntity(entity);
+                            client.execute(postPhoto, new PhotoResponseHandler());
+                        }
+                        else
+                        {
+                            photoUploadList.remove(photoUploadList.indexOf(uploadBarcode));
+                            deletePhoto(uploadBarcode);
+                        }
 
 
-                    client.execute(postPhoto, new PhotoResponseHandler());
+                        checkPostPhoto = false;
+                        if (photoUploadList.size() > 0)
+                        {
+                            Log.d(TAG, "uploading next photo.");
+                            getStoragePhotos();
+                        }
+                        else
+                        {
+                            Log.d(TAG, "upload done.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        checkPostPhoto = false;
+                        Log.d(TAG, "upload photo error: " + e.toString());
+                    }
                 }
-                catch (Exception e)
-                {
-                    Log.d(TAG, "upload photo error: " + e.toString());
-                }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     private void acceptUpload(final String barcode)
@@ -377,6 +527,26 @@ public class CrowdsourcingService extends Service
                 }
             }).start();
         }
+    }
+
+    private void getStoragePhotos()
+    {
+
+        if (!checkPostPhoto && (photoUploadList.size() > 0))
+        {
+            uploadPhotos();
+        }
+
+    }
+
+    private void deletePhoto(String barcode)
+    {
+        for(int i = 1; i <= 3; i++)
+        {
+            File file = new File(sdCardDirectory.getAbsolutePath() + SD_STORAGE, barcode + "_" + i + ".jpg");
+            file.delete();
+        }
+        Log.d(TAG, "delete photos sucess " + barcode);
     }
 
     public IBinder onBind(Intent intent)
